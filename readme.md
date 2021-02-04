@@ -6,6 +6,7 @@ This repository is used for documents / code / notes related to the controller a
 | -------------| -------------|
 | `/application`      | Code for the application/GUI |
 | `/embedded`      | Code for the uSteppers |
+| `/docs`      | Documentation |
 
 
 
