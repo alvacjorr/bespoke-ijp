@@ -5,10 +5,19 @@ import time
 gw = GPD_43038('COM5')
 
 
-for v in range(6):
-    gw.set_voltage(v,1)
+
+for v in range(1):
+
+
+    gw.get("IOUT",1,"QUERY")
 
     time.sleep(1)
+
+    
+    gw.poll_async()
+    print(gw.get("IOUT",1,"REPLY"))
+
+
 
 
 

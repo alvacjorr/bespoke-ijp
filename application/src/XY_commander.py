@@ -40,6 +40,7 @@ class PrinterUi(QMainWindow):
         self.createGoToAngleBox()
         self.createGoToMMBox()
         self.createPositionIndicator()
+        self.createHeaterIndicator()
         self.generalLayout.addLayout(self.goToLayout)
         self.createToolBox()
         self.createScriptEditor()
@@ -104,6 +105,35 @@ class PrinterUi(QMainWindow):
         PIBox.setLayout(PILayout)
 
         self.goToLayout.addWidget(PIBox,1,0,1,3)
+
+    def createHeaterIndicator(self):
+        HeaterLayout = QGridLayout()
+        self.HeaterLCDScreens = {}
+        self.HeaterLCDLabels = {}
+
+        LCDHeaderOffset = 1
+        
+        
+        for valName,valIndex in HeaterLCDvals.items():
+            for dim,dimString in HeaterChannelNames.items():
+                if valName == 'Channel':
+                    self.HeaterLCDLabels[dim] = QLabel(dimString)
+                    HeaterLayout.addWidget(self.HeaterLCDLabels[dim],dim+LCDHeaderOffset,0)
+                else:
+                    self.HeaterLCDScreens[dim,valIndex] = QLCDNumber()
+                    self.HeaterLCDScreens[dim,valIndex].setDigitCount(6)
+                    self.HeaterLCDScreens[dim,valIndex].setFixedSize(100,40)
+                    HeaterLayout.addWidget(self.HeaterLCDScreens[dim,valIndex],dim+LCDHeaderOffset,1+valIndex)
+
+                
+                
+            HeaterLayout.addWidget(QLabel(valName),0,1+valIndex)
+            
+            
+        HeaterBox = QGroupBox("Heater Power")
+        HeaterBox.setLayout(HeaterLayout)
+
+        self.goToLayout.addWidget(HeaterBox,2,0,1,3)
 
     def createGoToBox(self):
         """Creates a box with a go to Steps button and two spinboxes to set X and Y in steps"""
@@ -209,7 +239,7 @@ class PrinterController:
         self._xy = xy
         self._script = SequenceHandler(self._xy)
         self._jetdrive = jetdrive
-        self._psu = psu
+        self._heater = heater
         #self._bounds = bounds
         # Connect signals and slots
         self._connectSignals()
@@ -325,6 +355,20 @@ class PrinterController:
     def updatePositionIndicator(self):
         """Function to request position and velocity data from each uStepper and print it on the LCDs"""
         #print("updating lcd")
+        for i in range(0,2):
+            channel = i+1
+            for  cmd, index in HeaterLCDvals.items():
+                if cmd != 'Channel':
+                    self._heater.power.get(cmd,channel,'QUERY')
+                    s = self._heater.power.poll_async()
+                    if s != 'SANFAIL':
+                        value = self._heater.power.get(cmd,channel,'REPLY')
+                        if value != 'EMPTY':
+                            self._view.HeaterLCDScreens[i,index].display(value)
+                       
+                    
+
+
         if self._xy.isBlocking == 0:
             for i in range(0,2):
                 data = self._xy.getData(i)
@@ -335,6 +379,7 @@ class PrinterController:
                         #print(self._xy.currentPosition)
                     if letter == 'A':
                         self._view.PILCDScreens[i,LCDvals.get('mm')].display(conv.convert(number,'angle','mm'))
+        
 
         
         
@@ -665,11 +710,20 @@ class psuController():
             self.isConnected = False
             print('PSU not found - using dummy instead.')
         self.power.turn_off()
-        self.power.set_voltage(POW_STEPPER_VOLTAGE,POW_STEPPER_CHANNEL)
-        self.power.set_current(POW_STEPPER_MAX_CURRENT,POW_STEPPER_CHANNEL)
-        self.power.set_voltage(POW_HEATER_INIT_VOLTAGE,POW_HEATER_CHANNEL)
-        self.power.set_current(POW_HEATER_MAX_CURRENT,POW_HEATER_CHANNEL)
+        self.power.set_voltage(POW_HEATER_NOZZLE_INIT_VOLTAGE,POW_HEATER_NOZZLE_CHANNEL)
+        self.power.set_current(POW_HEATER_NOZZLE_MAX_CURRENT,POW_HEATER_NOZZLE_CHANNEL)
+        self.power.set_voltage(POW_HEATER_BED_INIT_VOLTAGE,POW_HEATER_BED_CHANNEL)
+        self.power.set_current(POW_HEATER_BED_MAX_CURRENT,POW_HEATER_BED_CHANNEL)
         self.power.turn_on()
+        self.toggle = False
+
+    def change(self):
+        if self.toggle:
+            self.power.turn_off()
+        else:
+            self.power.turn_on()
+        self.toggle = ~self.toggle
+
 
 
 
@@ -684,9 +738,9 @@ def main():
     view.show()
     xyInterface = XYSerialInterface()
     jetdriveInterface = JetDriveSerialInterface(JETDRIVE_PORT)
-    psuInterface = psuController(PSU_PORT)
+    heaterPsu = psuController(HEATER_PSU_PORT)
     
-    PrinterController(view=view, xy = xyInterface, jetdrive = jetdriveInterface, psu = psuInterface)
+    PrinterController(view=view, xy = xyInterface, jetdrive = jetdriveInterface, heater = heaterPsu)
 
     # Execute the printer's main loop
     sys.exit(printer.exec_())

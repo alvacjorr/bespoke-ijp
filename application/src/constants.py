@@ -10,7 +10,7 @@ STAGE_Y_SERIAL_NUMBER = '7A6AA05F5414E81185539C3A3B0549EC'
 JETDRIVE_PORT = 'COM1'
 HEATER_PSU_PORT = 'COM5'
 
-GET_BOUNDS_ON_STARTUP = True
+GET_BOUNDS_ON_STARTUP = False
 
 
 dimMap = {0:'x',1:'y'}
@@ -18,6 +18,13 @@ dimMap = {0:'x',1:'y'}
 LCDvals = {'axis':0,'angle':1,'steps':2,'V_measured':5,'V_target':4,'mm':3}
 
 LETTER_TO_LCD = {'A':'angle','S':'steps','V':'V_measured','D':'V_target'}
+
+
+#Heater LCD stuff
+
+HeaterLCDvals = {'Channel':0,'VSET':1,'ISET':2,'VOUT':3,'IOUT':4}
+
+HeaterChannelNames = {0:'nozzle',1:'bed'}
 
 #motor settings
 
@@ -84,7 +91,7 @@ QT_JOYSTICK_STEP_INCREMENT = 10000
 
 QT_POLLER_ENABLED = 1
 
-QT_POLLER_TIME_MS = 50
+QT_POLLER_TIME_MS = 2
 
 QT_STYLE_EXECUTE_READY = "background-color: green; color: white"
 
@@ -95,10 +102,13 @@ WELCOME_MESSAGE = "Welcome to IEB Printing."
 
 #Power Supply Settings
 
-POW_STEPPER_CHANNEL = 1
-POW_STEPPER_VOLTAGE = 24
-POW_STEPPER_MAX_CURRENT = 2
 
-POW_HEATER_CHANNEL = 2
-POW_HEATER_INIT_VOLTAGE = 5
-POW_HEATER_MAX_CURRENT = 2
+POW_HEATER_NOZZLE_CHANNEL = 1
+POW_HEATER_NOZZLE_INIT_VOLTAGE = 1.2
+POW_HEATER_NOZZLE_MAX_CURRENT = 2
+
+POW_HEATER_BED_CHANNEL = 2
+POW_HEATER_BED_INIT_VOLTAGE = 1.5
+POW_HEATER_BED_MAX_CURRENT = 1.6
+
+POW_SERIAL_TIMEOUT = 0.01
