@@ -10,10 +10,6 @@ This repository is used for documents / code / notes related to the controller a
 
 
 
-## Tasks
-- Open tasks are listed  in the [Github Issue Tracker](https://github.com/oxfordcontrol/OxVentControl/issues) and the [Projects board](https://github.com/oxfordcontrol/OxVentControl/projects)
-- Please assign yourself to the tasks if you are working on them and keep them updated
-- Please close the issue if it is resolved. Also reference the commit that fixed the issue.
 
 
 ## Workflow - Basics 
