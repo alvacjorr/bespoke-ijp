@@ -484,11 +484,11 @@ class PrinterController:
             for letter, number in tempData.items():
                 temp = conv.analogToTemp(number)
                 if letter == 'B':                    
-                    print('Bed Temperature = ' + str(temp))
+                    #print('Bed Temperature = ' + str(temp))
                     self._view._graph.update_plot(temp)
                 if letter == 'N':
                     self._view._graph.update_other_plot(temp)
-                    print('Nozzle Temperature = ' + str(temp))
+                    #print('Nozzle Temperature = ' + str(temp))
 
         
 
