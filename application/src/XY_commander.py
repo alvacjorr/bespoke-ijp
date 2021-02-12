@@ -15,14 +15,89 @@ import psu_serial
 
 import numpy as np
 
-from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
-if is_pyqt5():
-    from matplotlib.backends.backend_qt5agg import (
-        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
-else:
-    from matplotlib.backends.backend_qt4agg import (
-        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+import random
+import datetime as dt
+import matplotlib
+matplotlib.use('Qt5Agg')
+
+
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+
+
+
+
+class MplCanvas(FigureCanvasQTAgg):
+
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(1,2,1)
+        self.axes2 = fig.add_subplot(1,2,2)
+        super(MplCanvas, self).__init__(fig)
+
+
+class GraphWindow(QWidget):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout()
+        self.label = QLabel("Graphs!")
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+        n_data = 50
+        self.xdata = list(range(n_data))
+        self.ydata = [random.randint(0, 10) for i in range(n_data)]
+
+        n_data = 50
+        self.xdata2 = list(range(n_data))
+        self.ydata2 = [random.randint(0, 10) for i in range(n_data)]
+
+        self.sc = MplCanvas(self, width=5, height=4, dpi=100)
+
+        layout.addWidget(self.sc)
+
+        self._plot_ref = None
+        self._plot_ref_2 = None
+
+
+        self.show()
+
+
+    def update_plot(self, y_new):
+        self.ydata = self.ydata[1:]
+        self.ydata.append(y_new)
+        if self._plot_ref is None:
+            # First time we have no plot reference, so do a normal plot.
+            # .plot returns a list of line <reference>s, as we're
+            # only getting one we can take the first element.
+            plot_refs = self.sc.axes.plot(self.xdata, self.ydata, 'r')
+            self._plot_ref = plot_refs[0]
+        else:
+            # We have a reference, we can use it to update the data for that line.
+            self._plot_ref.set_ydata(self.ydata)
+
+        # Trigger the canvas to update and redraw.
+        self.sc.draw()
+
+    def update_other_plot(self, y_new):
+        self.ydata2 = self.ydata2[1:]
+        self.ydata2.append(y_new)
+        if self._plot_ref_2 is None:
+            # First time we have no plot reference, so do a normal plot.
+            # .plot returns a list of line <reference>s, as we're
+            # only getting one we can take the first element.
+            plot_refs = self.sc.axes2.plot(self.xdata2, self.ydata2, 'r')
+            self._plot_ref_2 = plot_refs[0]
+        else:
+            # We have a reference, we can use it to update the data for that line.
+            self._plot_ref_2.set_ydata(self.ydata2)
+
+        # Trigger the canvas to update and redraw.
+        self.sc.draw()
 
 
 
@@ -44,6 +119,8 @@ class PrinterUi(QMainWindow):
         self._centralWidget = QWidget(self)
         self.setCentralWidget(self._centralWidget)
         self._centralWidget.setLayout(self.generalLayout)
+
+
         
         self.createJoypad()
         self.goToLayout = QGridLayout()
@@ -55,8 +132,13 @@ class PrinterUi(QMainWindow):
         self.generalLayout.addLayout(self.goToLayout)
         self.createToolBox()
         self.createScriptEditor()
+        self.show_graph_window()
 
-        
+    def show_graph_window(self):
+        self._graph = GraphWindow()
+        self._graph.show()
+
+      
 
         
     def keyPressEvent(self,event):
@@ -400,10 +482,15 @@ class PrinterController:
             tempData = self._xy.getTempData(TEMP_AXIS)
             #print(tempData)
             for letter, number in tempData.items():
-                if letter == 'B':
-                    print('Bed Temperature = ' + str(conv.analogToTemp(number)))
+                temp = conv.analogToTemp(number)
+                if letter == 'B':                    
+                    print('Bed Temperature = ' + str(temp))
+                    self._view._graph.update_plot(temp)
                 if letter == 'N':
-                    print('Nozzle Temperature = ' + str(conv.analogToTemp(number)))
+                    self._view._graph.update_other_plot(temp)
+                    print('Nozzle Temperature = ' + str(temp))
+
+        
 
 
 
