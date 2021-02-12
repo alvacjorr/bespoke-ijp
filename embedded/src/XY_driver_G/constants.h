@@ -23,3 +23,10 @@
 #define GCODE_REQUEST_CONFIG    "M16"
 
 #define BAUD_RATE 115200
+
+
+#define GCODE_REQUEST_TEMP    "M17"
+
+#define PIN_TEMP_BED A0
+#define PIN_TEMP_NOZZLE A1
+

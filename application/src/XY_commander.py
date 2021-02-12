@@ -13,6 +13,17 @@ import conversions as conv
 
 import psu_serial
 
+import numpy as np
+
+from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
+if is_pyqt5():
+    from matplotlib.backends.backend_qt5agg import (
+        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+else:
+    from matplotlib.backends.backend_qt4agg import (
+        FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.figure import Figure
+
 
 
 
@@ -250,6 +261,8 @@ class PrinterController:
             time.sleep(1)
             self.startPoller()
 
+
+
         
 
     #functions for creation of a poller to check the mechanical values on the drivers        
@@ -354,23 +367,26 @@ class PrinterController:
 
     def updatePositionIndicator(self):
         """Function to request position and velocity data from each uStepper and print it on the LCDs"""
-        #print("updating lcd")
-        for i in range(0,2):
-            channel = i+1
-            for  cmd, index in HeaterLCDvals.items():
-                if cmd != 'Channel':
-                    self._heater.power.get(cmd,channel,'QUERY')
-                    s = self._heater.power.poll_async()
-                    if s != 'SANFAIL':
-                        value = self._heater.power.get(cmd,channel,'REPLY')
-                        if value != 'EMPTY':
-                            self._view.HeaterLCDScreens[i,index].display(value)
+        #print("updating lcd")  
+
+        """this bit does the voltages"""
+        if QT_POLL_PSU:
+            for i in range(0,2): #get power data and display it
+                channel = i+1
+                for  cmd, index in HeaterLCDvals.items():
+                    if cmd != 'Channel':
+                        self._heater.power.get(cmd,channel,'QUERY')
+                        s = self._heater.power.poll_async()
+                        if s != 'SANFAIL':
+                            value = self._heater.power.get(cmd,channel,'REPLY')
+                            if value != 'EMPTY':
+                                self._view.HeaterLCDScreens[i,index].display(value)
                        
                     
 
-
+        """this bit does the mechanical data"""
         if self._xy.isBlocking == 0:
-            for i in range(0,2):
+            for i in range(0,2): #get positional data and display it
                 data = self._xy.getData(i)
                 for letter, number in data.items():
                     self._view.PILCDScreens[i,LCDvals.get(LETTER_TO_LCD.get(letter))].display(number)
@@ -379,6 +395,19 @@ class PrinterController:
                         #print(self._xy.currentPosition)
                     if letter == 'A':
                         self._view.PILCDScreens[i,LCDvals.get('mm')].display(conv.convert(number,'angle','mm'))
+
+            """this bit does the temp data"""
+            tempData = self._xy.getTempData(TEMP_AXIS)
+            #print(tempData)
+            for letter, number in tempData.items():
+                if letter == 'B':
+                    print('Bed Temperature = ' + str(conv.analogToTemp(number)))
+                if letter == 'N':
+                    print('Nozzle Temperature = ' + str(conv.analogToTemp(number)))
+
+
+
+            
         
 
         
@@ -530,6 +559,11 @@ class XYSerialInterface:
         datastring = 'M15 \n'
         return datastring.encode('utf-8')
 
+    def GgetTempData(self):
+        """Generates GCode M17 to request temperature data"""
+        datastring = 'M17 \n'
+        return datastring.encode('utf-8')
+
     def Gstop(self):
         """Generates GCode M0 to stop a motor"""
         datastring = 'M0 \n'
@@ -543,12 +577,17 @@ class XYSerialInterface:
         #print(parsed)
         return parsed
 
+    def getTempData(self, axis):
+        reply = self.callResponse(self.GgetTempData(),self.axisToPort(axis))
+        parsed = self.parseData(reply)
+        return parsed
+
     def parseData(self, data): #parses data provided in format DATA A0.03 S0 V0.00 D0.00 from the M15 Gcode.
         seps = re.split(":? ", data)
         datadict = {}
         try:
             for s in seps:
-                if (s != 'DATA'):
+                if ((s != 'DATA') and (s != 'TEMP')):
                     label = s[0]
                     val = re.findall(r"[-+]?\d*\.\d+|\d+", s) #weird regex. just trust it.
                     val = float(val[0])

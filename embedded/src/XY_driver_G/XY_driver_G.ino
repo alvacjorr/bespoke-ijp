@@ -28,7 +28,8 @@ void setup() {
 
   UARTPORT.begin(115200);
   // DEBUGPORT.begin(115200);
-  
+
+   
   stepper.setup(CLOSEDLOOP,200);
   stepper.disableClosedLoop();
 
@@ -62,6 +63,7 @@ void setup() {
   
   comm.addCommand( GCODE_REQUEST_DATA,    &uart_sendData );
   comm.addCommand( GCODE_REQUEST_CONFIG,  &uart_sendConfig );
+  comm.addCommand( GCODE_REQUEST_TEMP,  &uart_sendTemp);
   
   // Called if the packet and checksum is ok, but the command is unsupported
   comm.addCommand( NULL, uart_default );
@@ -247,6 +249,20 @@ void uart_sendConfig(char *cmd, char *data){
   
   strcat(buf, "CONF ");
   sprintf(buf + strlen(buf), "V%s A%s B%d C%d D%s E%d F%d", strVel, strAccel, conf.brake, conf.closedLoop, strHomeVel, conf.homeThreshold, conf.homeDirection);
+
+  comm.send(buf);
+}
+
+void uart_sendTemp(char *cmd, char *data){
+  char buf[50] = {'\0'};
+  char strNozzle[10] = {'\0'};
+  char strBed[10] = {'\0'};
+  
+  dtostrf(analogRead(PIN_TEMP_NOZZLE), 4, 2, strNozzle);
+  dtostrf(analogRead(PIN_TEMP_BED), 4, 2, strBed);
+  
+  strcat(buf, "TEMP ");
+  sprintf(buf + strlen(buf), "N%s B%s", strNozzle, strBed);
 
   comm.send(buf);
 }

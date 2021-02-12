@@ -5,7 +5,7 @@ class GPD_43038:
         """class to control a GWINSTEK GPD-43038"""
 
         
-        self.instrument = serial.Serial(port, baudrate=115200, timeout= 0.0002)
+        self.instrument = serial.Serial(port, baudrate=115200, timeout= 0.002)
         print("Connected to power supply:")
         self.async_query_buffer = [] #create an empty lis
         self.async_reply_buffer = []
@@ -69,14 +69,13 @@ class GPD_43038:
                 temp = self.async_reply_buffer
             #with suppress(IndexError):
                 if i+1 == len(temp):
-                    print('boom')
-                    #return 'SANFAIL'
+                    return 'SANFAIL'
                 if i < len(temp):
-                    print(i)
-                    print(len(temp))
-                    print(temp)
-                    print(temp[i])
-                    print(temp[i+1])
+                    #print(i)
+                    #print(len(temp))
+                    #print(temp)
+                    #print(temp[i])
+                    #print(temp[i+1])
                     temp[i] = temp[i] + temp[i+1]
                     temp.pop(i+1)
                     self.async_reply_buffer = temp
@@ -100,7 +99,12 @@ class GPD_43038:
         #print ('popping index ' + str(index))
         b = True
         try:
-            response = self.async_reply_buffer.pop(index)
+            response = self.async_reply_buffer[index]
+            if response.endswith('\n'):
+                response = self.async_reply_buffer.pop(index)
+            else:
+                b = False
+                response = 'EMPTY'
         except IndexError: 
             #print('response not available yet!!')
             response = 'EMPTY'
