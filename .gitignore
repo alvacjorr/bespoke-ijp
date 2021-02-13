@@ -76,6 +76,7 @@ docs/doxygen_out
 # Sphinx output
 
 docs/source/_build
+docs/build
 
 # Editor files
 # -------------------------------------------------------------------
