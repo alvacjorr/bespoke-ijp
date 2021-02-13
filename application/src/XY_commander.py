@@ -689,16 +689,16 @@ class XYSerialInterface:
             return self.portY
 
     def stopAll(self):
-        """[Stop all motors.]
+        """Stop all motors.
         """
         self.stop(1)
         self.stop(0)
 
     def stop(self,axis):
-        """[Stop motion on a given axis]
+        """Stop motion on a given axis
 
-        :param axis: [axis to stop]
-        :type axis: [int]
+        :param axis: axis to stop
+        :type axis: int
         """
         self.command(axis,self.Gstop())
 
