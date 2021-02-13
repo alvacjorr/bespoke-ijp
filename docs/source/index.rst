@@ -21,6 +21,7 @@ This documentation will (eventually) include, amongst other things:
    userguide
    programmer
    building
+   modules
 
 
 
