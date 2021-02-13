@@ -29,7 +29,7 @@ from matplotlib.figure import Figure
 
 
 class MplCanvas(FigureCanvasQTAgg):
-    """[summary]
+    """summary
 
     :param FigureCanvasQTAgg: [description]
     :type FigureCanvasQTAgg: [type]
@@ -110,7 +110,7 @@ class GraphWindow(QWidget):
 
 
 class PrinterUi(QMainWindow):
-    """[Main UI Class]
+    """Main UI
 
     :param QMainWindow: [description]
     :type QMainWindow: [type]
@@ -118,7 +118,7 @@ class PrinterUi(QMainWindow):
 
     keyPressed = Signal(int)
     def __init__(self):
-        """[Creates the UI]
+        """Creates the UI
         """
         super().__init__()
         # Set some main window's properties
@@ -152,13 +152,14 @@ class PrinterUi(QMainWindow):
 
         
     def keyPressEvent(self,event):
-        """Handler for keypress events. I have no idea how this works but it does..."""
+        """Handle a keypress event
+        """
         super(PrinterUi, self).keyPressEvent(event)
         self.keyPressed.emit(event.key())
 
 
     def createJoypad(self):
-        """[Creates a joypad to control the XY motion, with a 'DROP' button in the middle]
+        """Creates a joypad to control the XY motion, with a 'DROP' button in the middle
         """
         self.joypadButtons = {}
         joypadLayout = QGridLayout()
@@ -182,7 +183,8 @@ class PrinterUi(QMainWindow):
         self.generalLayout.addWidget(joypadBox) #check indent
 
     def createPositionIndicator(self):
-        """Creates a position indicator for X and Y"""
+        """Create an LCD position indicator for X and Y
+        """
         PILayout = QGridLayout()
         self.PILCDScreens = {}
         self.PILCDLabels = {}
@@ -302,7 +304,7 @@ class PrinterUi(QMainWindow):
         self.goToLayout.addWidget(GTABox,0,2)
         
     def createToolBox(self):
-        """[Generates a box for general tools/actions eg homing, panic etc]
+        """Generates a box for general tools/actions eg homing, panic etc
         """
         ToolLayout = QGridLayout()
         self.homeButton = QPushButton('home')
@@ -339,7 +341,7 @@ class PrinterUi(QMainWindow):
 class PrinterController:
     #Printer controller cclass. master for basically everything.
     def __init__(self, view, xy, jetdrive, heater):
-        """[summary]
+        """Create a printer controller. Acts as a bridge between UI and the various serial devices
 
         :param view: [description]
         :type view: [type]
@@ -376,7 +378,7 @@ class PrinterController:
         self.poller.timeout.connect(partial(self.updatePositionIndicator))
 
     def startPoller(self):
-        """Starts the driver poller"""
+        """Start the driver poller"""
         self.poller.start(QT_POLLER_TIME_MS)
 
     def pausePoller(self):
@@ -423,7 +425,7 @@ class PrinterController:
             self._xy.moveAngleAbsolute(i,target)
 
     def goToMMFunc(self):
-        """[Go to the location, in mm, specified by the mm spinner]
+        """Go to the location, in mm, specified by the mm spinner
         """
         for i in (0,1):
             target = float(self._view.GoToMMSpinners[i].text())
@@ -432,16 +434,16 @@ class PrinterController:
             self._xy.moveAngleAbsolute(i,target)
 
     def runScriptFunc(self):
-        """[Pass the currently edited script to the script handler and play it.]
+        """Pass the currently edited script to the script handler and play it back
         """
         scriptString = self._view.scriptEditor.toPlainText()
         self._script.handleScript(scriptString)
 
     def buttonXY(self, text):
-        """[Handles joypad button presses.]
+        """[Handle a joypad button press
 
-        :param text: [character label of the button - '>', '^' etc...]
-        :type text: [char]
+        :param text: character label of the button - '>', '^' etc
+        :type text: char
         """        
         distance = int(self._view.joypadDistanceSetter.text())
 
@@ -456,10 +458,10 @@ class PrinterController:
         self._xy.move(axis, distance)
 
     def keyXY(self, text):
-        """[Handle a single WASD keypress event]
+        """Handle a single WASD keypress event
 
-        :param text: [key press character]
-        :type text: [string]
+        :param text: key press character
+        :type text: char
         """
 
 
@@ -536,7 +538,7 @@ class PrinterController:
         
 class XYSerialInterface:
     def __init__(self): #two serial interfaces, one with X and one with Y uStepper
-        """Initialiser. Connects to the COM ports for the two uSteppers"""
+        """Create the interface"""
         self.allocatePorts() #allocates its ports
         self.initialisePosition() 
         self.isBlocking = 0
@@ -548,10 +550,7 @@ class XYSerialInterface:
             self.homeBoth()
 
     def allocatePorts(self): 
-        """Find, allocate and connect to the ports of the X and Y drivers. Need to implement auto-finding
-        Keywords:
-        a -- one of he ports
-        b -- another port
+        """Allocate and connect to X and Y ports.
         """
 
 
@@ -582,38 +581,44 @@ class XYSerialInterface:
         return self.currentPosition
         
     def move(self, axis, steps):
-        """Move an axis to a relative position in steps
-        Arguments:
-        axis -- the selected axis
-        steps -- the relative position in steps
-        """
+        """Move a given number of steps relative to the current position
+
+        :param axis: Axis to move
+        :type axis: int
+        :param steps: Number of steps to move
+        :type steps: int
+        """        
+
         self.command(axis, self.Gmove(steps))            
         #print(dimMap[axis] +" " + str(steps) + " steps")
 
     def moveStepsAbsolute(self, axis, steps):
-        """Move an axis to an absolute position in steps
-        Arguments:
-        axis -- the selected axis
-        steps -- the absolute position in steps
+        """Move to an absolute position in steps
+
+        :param axis: Axis to move
+        :type axis: int
+        :param steps: Absolute step to move to
+        :type steps: int
         """
+
         diff = int(steps - self.currentPosition[axis])
         print(diff)
         self.move(axis,diff)
         
 
     def moveAngleAbsolute(self, axis, angle):
-        """[Move to an absolute angle]
+        """Move to an absolute angle
 
-        :param axis: [axis to move]
-        :type axis: [int]
-        :param angle: [angle to move to]
-        :type angle: [float]
+        :param axis: axis to move
+        :type axis: int
+        :param angle: angle to move to
+        :type angle: float
         """
         self.command(axis, self.GmoveAngleAbsolute(angle))
 
 
     def homeBoth(self):
-        """[Home both motors and reset their zero point]
+        """Home both motors and reset their zero point
         """
         self.boundsController.maximumAngle[0] = self.home(0)
         self.boundsController.maximumAngle[1] = self.home(1)
@@ -621,23 +626,39 @@ class XYSerialInterface:
 
 
     def home(self, axis):
-        """[Homes a motor.]
+        """Home a motor and return the distance it homed
 
-        :param axis: [description]
-        :type axis: [bool]
-        :return: [Rail length.]
-        :rtype: [float]
+        :param axis: Axis to home
+        :type axis: bool
+        :return: Rail length in degrees
+        :rtype: float
         """
         self.command(axis, self.Ghome())
         dataDict = self.blockUntilRX(axis, 'DATA', True)
         return dataDict['A']
 
     def command(self, axis, data):
-        """Sends a command (data) to the specified axis"""
+        """Sends a serial command to the specified axis
+
+        :param axis: Axis to which the command is sent
+        :type axis: int
+        :param data: The command to be sent
+        :type data: string
+        """        
         self.axisToPort(axis).write(data)
 
     def blockUntilRX(self, axis, msg, passToParser):
-        """blocks until a message is recieved from the stepper containing msg. this also freezes the interface window which I don't like."""
+        """Block until a specific message is reveived from the stepper
+
+        :param axis: Axis to block
+        :type axis: int
+        :param msg: Message to wait for
+        :type msg: string
+        :param passToParser: If True, the message returned will be sent to the parser
+        :type passToParser: bool
+        :return: A dictionary containing data parsed from the message
+        :rtype: dict
+        """        
         self.isBlocking=1
         port = self.axisToPort(axis)
         print("blocking axis " + str(axis))
