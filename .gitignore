@@ -73,6 +73,10 @@ coverage_html/
 # Doxygen output
 docs/doxygen_out
 
+# Sphinx output
+
+docs/_build
+
 # Editor files
 # -------------------------------------------------------------------
 *.swp
