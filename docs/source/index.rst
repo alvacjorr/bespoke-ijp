@@ -14,15 +14,46 @@ This documentation will (eventually) include, amongst other things:
 - A User's Guide
 - A Programmer's documentation for the Python GUI
 
-
-
-
-Guide
-*****
+Control
+======
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 4
+
+   XY_commander
+   constants
+   conversions
+   plotter
+   port_finder
+   psu_serial
+   testpsu
+
+
+
+User's Guide
+============
+
+Hardware Overview
+=================
+
+The system consists of:
+
+- Motor Power Supply
+- Heater Power Supply
+- Control PC
+- XY Translation Bed
+- MicroFab JetDrive III
+
+Installing the software
+***********************
+
+Ensure you have git installed. Then run
+
+    git clone
+
+This should copy all the necessary files to your system.
+
+
 
 
 

@@ -29,6 +29,11 @@ from matplotlib.figure import Figure
 
 
 class MplCanvas(FigureCanvasQTAgg):
+    """[summary]
+
+    :param FigureCanvasQTAgg: [description]
+    :type FigureCanvasQTAgg: [type]
+    """
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
@@ -105,11 +110,16 @@ class GraphWindow(QWidget):
 
 
 class PrinterUi(QMainWindow):
-    """Printer View (GUI)."""
+    """[Main UI Class]
+
+    :param QMainWindow: [description]
+    :type QMainWindow: [type]
+    """
 
     keyPressed = Signal(int)
     def __init__(self):
-        """View initializer."""
+        """[Creates the UI]
+        """
         super().__init__()
         # Set some main window's properties
         self.setWindowTitle('Printer')
@@ -148,7 +158,8 @@ class PrinterUi(QMainWindow):
 
 
     def createJoypad(self):
-        """Function to generate a joypad for controlling the XY position"""
+        """[Creates a joypad to control the XY motion, with a 'DROP' in the middle]
+        """
         self.joypadButtons = {}
         joypadLayout = QGridLayout()
         joypadButtons = {'^': (0,1), 'v': (2,1), '>': (1,2), '<': (1,0), 'DROP': (1,1)}
