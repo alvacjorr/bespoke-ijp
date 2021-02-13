@@ -12,10 +12,9 @@ This documentation will (eventually) include, amongst other things:
 - A User's Guide
 - A Programmer's documentation for the Python GUI
 
-Table of Contents
-================
 
 .. toctree::
+   :caption: Contents
    :maxdepth: 4
 
    background
