@@ -44,9 +44,10 @@ The system consists of:
 Installing the software
 ***********************
 
-Ensure you have git installed. Then run
+Ensure you have git installed. Then run:
+::
 
-    git clone
+    git clone https://github.com/thekeeno/bespoke-ijp
 
 This should copy all the necessary files to your system.
 
