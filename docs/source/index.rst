@@ -108,7 +108,7 @@ Note: this is not exhaustive!
 
 - An optical table
 - A comedically large quantity of 
-- 2x `OpenBuilds C-Beam Linear Actuator <link https://ooznest.co.uk/product/c-beam-linear-actuator>`
+- 2x `OpenBuilds C-Beam Linear Actuator <https://ooznest.co.uk/product/c-beam-linear-actuator>`_
 
   - Actuator Length 250mm
   - NEMA23 Stepper Motor
