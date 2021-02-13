@@ -1,6 +1,19 @@
 IEB Bespoke Inkjet Printing
 =======================================
 
+
+
+.. toctree::
+   :maxdepth: 4
+
+   XY_commander
+   constants
+   conversions
+   plotter
+   port_finder
+   psu_serial
+   testpsu
+
 Welcome
 =========
 
@@ -14,27 +27,11 @@ This documentation will (eventually) include, amongst other things:
 - A User's Guide
 - A Programmer's documentation for the Python GUI
 
-Control
-======
-
-.. toctree::
-   :maxdepth: 4
-
-   XY_commander
-   constants
-   conversions
-   plotter
-   port_finder
-   psu_serial
-   testpsu
-
-
-
 User's Guide
 ============
 
 Hardware Overview
-=================
+*****************
 
 The system consists of:
 
