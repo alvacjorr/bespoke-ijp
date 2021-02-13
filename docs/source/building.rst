@@ -38,7 +38,7 @@ OpenBuilds have instructions on their `website <https://openbuilds.com/builds/c-
 Downloading the software
 ************************
 
-As in previous sections!
+As in previous sections.
 
 
 Registering the X and Y axes
