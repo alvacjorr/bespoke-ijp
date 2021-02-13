@@ -3,7 +3,7 @@ from constants import *
 
 
 def convert(inValue, inUnits, outUnits):
-    """[summary]
+    """Generic conversion function to convert to and from any of angle, distance in mm and steps.
 
     :param inValue: Value to be converted
     :type inValue: float
