@@ -1,5 +1,7 @@
 # bespoke-ijp
 
+[![Documentation Status](https://readthedocs.org/projects/bespoke-ijp/badge/?version=latest)](https://bespoke-ijp.readthedocs.io/en/latest/?badge=latest)
+
 This repository is used for documents / code / notes related to the controller and software of the IEB bespoke inkjet printing rig. 
 ## Folder Structure
 | Folder       |  Description  | 
