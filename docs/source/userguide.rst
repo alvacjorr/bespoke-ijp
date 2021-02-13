@@ -11,7 +11,9 @@ The system consists of:
 - Control PC
 - XY Translation Stage
 - Heating elements (nozzle and bed)
+- Microfab nozzles
 - MicroFab JetDrive III
+- Imaging setup (not documented here)
 
 Installing the software
 ***********************

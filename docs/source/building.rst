@@ -32,7 +32,7 @@ Note: this is not exhaustive!
 Assembling the rails
 *******************
 
-OpenBuilds have an instruction set for this. Pictures also on their way!
+OpenBuilds have instructions on their `website <https://openbuilds.com/builds/c-beam%E2%84%A2-linear-actuator.1955/>`_ to help you assemble the rails. Pictures also on their way!
 
 
 Downloading the software
@@ -45,6 +45,6 @@ Registering the X and Y axes
 ****************************
 
 To distinguish between the X and Y rails, simply specifying a COM or tty port can result in guesswork.
-To simplify this process, I made a python script for this.
+To simplify this process, I made a python script that prints the unique serial numbers from the uSteppers, allowing the X and Y stages to be directly identified, from system to system.
 
 
