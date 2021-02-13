@@ -158,7 +158,7 @@ class PrinterUi(QMainWindow):
 
 
     def createJoypad(self):
-        """[Creates a joypad to control the XY motion, with a 'DROP' in the middle]
+        """[Creates a joypad to control the XY motion, with a 'DROP' button in the middle]
         """
         self.joypadButtons = {}
         joypadLayout = QGridLayout()
@@ -302,7 +302,8 @@ class PrinterUi(QMainWindow):
         self.goToLayout.addWidget(GTABox,0,2)
         
     def createToolBox(self):
-        """Generates a box for general tools/actions eg homing, panic etc"""
+        """[Generates a box for general tools/actions eg homing, panic etc]
+        """
         ToolLayout = QGridLayout()
         self.homeButton = QPushButton('home')
         self.stopButton = QPushButton('stop')
@@ -338,7 +339,17 @@ class PrinterUi(QMainWindow):
 class PrinterController:
     #Printer controller cclass. master for basically everything.
     def __init__(self, view, xy, jetdrive, heater):
-        """Controller initializer."""
+        """[summary]
+
+        :param view: [description]
+        :type view: [type]
+        :param xy: [description]
+        :type xy: [type]
+        :param jetdrive: [description]
+        :type jetdrive: [type]
+        :param heater: [description]
+        :type heater: [type]
+        """
         self._view = view
         self._xy = xy
         self._script = SequenceHandler(self._xy)
@@ -412,6 +423,8 @@ class PrinterController:
             self._xy.moveAngleAbsolute(i,target)
 
     def goToMMFunc(self):
+        """[Go to the location, in mm, specified by the mm spinner]
+        """
         for i in (0,1):
             target = float(self._view.GoToMMSpinners[i].text())
             #print(target)
@@ -419,11 +432,17 @@ class PrinterController:
             self._xy.moveAngleAbsolute(i,target)
 
     def runScriptFunc(self):
+        """[Pass the currently edited script to the script handler and play it.]
+        """
         scriptString = self._view.scriptEditor.toPlainText()
         self._script.handleScript(scriptString)
 
     def buttonXY(self, text):
-        """Handles button presses on the joypad"""
+        """[Handles joypad button presses.]
+
+        :param text: [character label of the button - '>', '^' etc...]
+        :type text: [char]
+        """        
         distance = int(self._view.joypadDistanceSetter.text())
 
         signMap = CHEVRON_TO_SIGN_DICT
@@ -437,8 +456,13 @@ class PrinterController:
         self._xy.move(axis, distance)
 
     def keyXY(self, text):
-        """Handles WASD keypresses"""     
-        
+        """[Handle a single WASD keypress event]
+
+        :param text: [key press character]
+        :type text: [string]
+        """
+
+
         try:
             text = KEY_TO_CHEVRON_DICT[text]
         except KeyError:
@@ -578,18 +602,32 @@ class XYSerialInterface:
         
 
     def moveAngleAbsolute(self, axis, angle):
+        """[Move to an absolute angle]
+
+        :param axis: [axis to move]
+        :type axis: [int]
+        :param angle: [angle to move to]
+        :type angle: [float]
+        """
         self.command(axis, self.GmoveAngleAbsolute(angle))
 
 
     def homeBoth(self):
-        """Homes both motors and resets their zero point"""
+        """[Home both motors and reset their zero point]
+        """
         self.boundsController.maximumAngle[0] = self.home(0)
         self.boundsController.maximumAngle[1] = self.home(1)
         print("Rail lengths found: " + str(self.boundsController.maximumAngle))
 
 
     def home(self, axis):
-        """Homes a motor, resets its zero point and returns the angle traversed"""
+        """[Homes a motor.]
+
+        :param axis: [description]
+        :type axis: [bool]
+        :return: [Rail length.]
+        :rtype: [float]
+        """
         self.command(axis, self.Ghome())
         dataDict = self.blockUntilRX(axis, 'DATA', True)
         return dataDict['A']
@@ -630,12 +668,17 @@ class XYSerialInterface:
             return self.portY
 
     def stopAll(self):
-        """Stops all motors"""
+        """[Stop all motors.]
+        """
         self.stop(1)
         self.stop(0)
 
     def stop(self,axis):
-        """Stops a single motor"""
+        """[Stop motion on a given axis]
+
+        :param axis: [axis to stop]
+        :type axis: [int]
+        """
         self.command(axis,self.Gstop())
 
     def Gmove(self, steps):        
@@ -865,8 +908,8 @@ class psuController():
 
 
 def main():
-
-    """Main function."""
+    """[Main function for the application]
+    """
     print(WELCOME_MESSAGE)
     # Create an instance of QApplication
     printer = QApplication(sys.argv)

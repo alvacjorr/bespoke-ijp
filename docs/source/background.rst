@@ -28,4 +28,4 @@ Inkjet printing is a digital, non-contact manufacturing method which, broadly sp
 Inkjet printing is a large market, with an estimated size of \$34 billion in 2019(Mordor Intelligence). 
 The most familiar usage of inkjet printing is in reprographics, which makes up around 90\% of the market, and includes commodity devices like desktop inkjet printers.
 
-In the case of this printer, Drop-On-Demand (DOD) is used.
+In the case of this system, Drop-On-Demand (DOD) is used.
