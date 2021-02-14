@@ -4,7 +4,16 @@ Background and Motivation
 This section explains the main motivations for the development of the bespoke-ijp system, as well as a description of some of the work that precedes it.
 Much of this section is copied verbatim from Andrew Orr's transfer report.
 
-Old system
+Inkjet Printing
+***************
+
+Inkjet printing is a digital, non-contact manufacturing method which, broadly speaking, consists of launching droplets of fluid from a nozzle onto a substrate.
+Inkjet printing is a large market, with an estimated size of \$34 billion in 2019(Mordor Intelligence). 
+The most familiar usage of inkjet printing is in reprographics, which makes up around 90\% of the market, and includes commodity devices like desktop inkjet printers.
+
+In the case of this system, Drop-On-Demand (DOD) is used.
+
+Predecessor System
 ********************
 
 The predecessor to this system, which ran using smaller stepper motors on belts, over a LabVIEW controller, currently still lives in the Fluids Lab.
@@ -21,11 +30,12 @@ The new bespoke-ijp system was therefore conceived to remedy these issues. The m
 - Basic scripting language, built on GCode, to allow for printing of patterns and similar routines
 
 
-Inkjet Printing
-***************
+Comparable Systems
+******************
 
-Inkjet printing is a digital, non-contact manufacturing method which, broadly speaking, consists of launching droplets of fluid from a nozzle onto a substrate.
-Inkjet printing is a large market, with an estimated size of \$34 billion in 2019(Mordor Intelligence). 
-The most familiar usage of inkjet printing is in reprographics, which makes up around 90\% of the market, and includes commodity devices like desktop inkjet printers.
+This system can be thought of as a low-cost, flexible DIY alternative to the MicroFab JetLab system installed in the Holder building.
+Although the commercial JetLab system is very accurate and reliable, it is not capable of integrating complex observation systems such as multiple high-speed cameras.
 
-In the case of this system, Drop-On-Demand (DOD) is used.
+Relevent Publications and Literature
+************************************
+
