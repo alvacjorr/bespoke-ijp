@@ -15,15 +15,7 @@ The system consists of:
 - MicroFab JetDrive III
 - Imaging setup (not documented here)
 
-Installing the software
-***********************
 
-Ensure you have git installed, as well as Python 3. Then run:
-::
-
-    git clone https://github.com/thekeeno/bespoke-ijp
-
-This should copy all the necessary files to your system.
 
 Connections
 ***********
