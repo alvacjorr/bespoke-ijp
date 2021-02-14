@@ -22,6 +22,7 @@ This documentation will (eventually) include, amongst other things:
    programmer
    building
    modules
+   issues
 
 
 
