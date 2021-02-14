@@ -1,12 +1,17 @@
 import serial
-from contextlib import suppress
-class GPD_43038:
+class GPD_4303S:
+    """Class to control a GW INSTEK GPD-4303S power supply
+    """    
     def __init__(self,port):
-        """class to control a GWINSTEK GPD-43038"""
+        """Initialise the PSU by connecting it, as well as creating a buffer for async communications.
+
+        :param port: The COM/tty port the PSU is attached to
+        :type port: string
+        """
 
         
         self.instrument = serial.Serial(port, baudrate=115200, timeout= 0.002)
-        print("Connected to power supply:")
+        print("Connected to power supply.")
         self.async_query_buffer = [] #create an empty lis
         self.async_reply_buffer = []
         #self.identify()
@@ -58,14 +63,17 @@ class GPD_43038:
                 self.async_reply_buffer.append(msg)
                 return self.sanitize_reply_buffer()
 
-    def sanitize_reply_buffer(self): #occasionally the input buffer gets corrupted. this function fixes it
+    def sanitize_reply_buffer(self):
+        """Occasionally the reply buffer gets corrupted, ususally from the poller thinking there is a newline when in fact there is not.
+
+        :return: Status of cleaning
+        :rtype: string
+        """        
         for i in self.async_reply_buffer:
 
             if not i.endswith('\n'):
             
                 i = self.async_reply_buffer.index(i)
-                #print(self.async_reply_buffer)
-                #print('we not good')
                 temp = self.async_reply_buffer
             #with suppress(IndexError):
                 if i+1 == len(temp):
@@ -87,13 +95,14 @@ class GPD_43038:
         
 
 
-    def get_async_response(self,message): #async checks if a query has been answered
-        #print("_____________________________")
-        #print("at start:")
-        #print(self.async_reply_buffer)
-        #print(self.async_query_buffer)
-        
-        #print(message)
+    def get_async_response(self,message):
+        """Check if a particular message has received an async response yet.
+
+        :param message: Message we are looking for a reply to
+        :type message: string
+        :return: Response from the PSU
+        :rtype: string
+        """        
         index = self.async_query_buffer.index(message)
 
         #print ('popping index ' + str(index))
@@ -128,23 +137,48 @@ class GPD_43038:
 
 
     def write(self, message):
+        """Write a message to the PSU
+
+        :param message: Message to send
+        :type message: String
+        """        
         self.instrument.write(message.encode())
         
         
 
     def identify(self):
+        """Print the ID of the PSU
+        """
         print(self.query("*IDN?\n"))
 
     def turn_on(self):
+        """Turn on all outputs on the PSU
+        """
         self.write("OUT1\n")
 
     def turn_off(self):
+        """Turn off all outputs on the PSU
+        """
         self.write("OUT0\n")
 
     def set_voltage(self, v, ch):
+        """Sets the voltage on a selected channel on the PSU
+
+        :param v: voltage in Volts
+        :type v: float
+        :param ch: Channel to set
+        :type ch: int (1,2,3,4)
+        """        
         self.write("VSET" + str(ch) + ":" + str(v) + "\n")
 
     def set_current(self, i, ch):
+        """Sets the current on a selected channel on the PSU
+
+        :param i: current in Amps
+        :type i: float
+        :param ch: Channel to set
+        :type ch: int (1,2,3,4)
+        """
         self.write("ISET" + str(ch) + ":" + str(i) + "\n")
 
     def get_set_voltage(self, ch):
@@ -174,9 +208,27 @@ class GPD_43038:
         return self.truncate_float_reply(r)
 
     def truncate_float_reply(self,reply):
+        """Truncate the last three letters of a reply and convert the remainder to float. For example, "0.002A\\r\\n" to "0.002"
+
+        :param reply: Voltage or current data from the PSU
+        :type reply: string
+        :return: The voltage or current
+        :rtype: float
+        """
         return float(reply[:-3])
 
     def get(self,cmd,ch,async_mode):
+        """Generic method to retrieve data from the PSU asynchronously.
+
+        :param cmd: The first section of the command, e.g. VOUT
+        :type cmd: String
+        :param ch: Channel
+        :type ch: int
+        :param async_mode: Denotes whether to send a query or check for a reply.
+        :type async_mode: string 'QUERY' or 'REPLY'
+        :return: The reponse to the query, if available
+        :rtype: String or None
+        """
         comString = cmd + str(ch) + "?\n"
         if async_mode == 'QUERY':
             self.query_async(comString)
@@ -190,6 +242,8 @@ class GPD_43038:
 
 
 class PSU_DUMMY:
+    """Dummy PSU class for when a realy PSU is not available.
+    """
     def __init__(self,port):
         """dummy GPD-43038"""
 

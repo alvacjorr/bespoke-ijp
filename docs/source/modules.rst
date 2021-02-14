@@ -1,5 +1,5 @@
-src
-===
+Python Module Guide
+===================
 
 .. toctree::
    :maxdepth: 4

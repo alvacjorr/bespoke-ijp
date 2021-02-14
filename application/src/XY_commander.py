@@ -904,7 +904,7 @@ class psuController():
     def __init__(self, port):
         """class for controlling a power supply that provides power to the heater elements and the motors"""
         try:
-            self.power = psu_serial.GPD_43038(port)
+            self.power = psu_serial.GPD_43038S(port)
             self.isConnected = True
         except:
             self.power = psu_serial.GPD_DUMMY
