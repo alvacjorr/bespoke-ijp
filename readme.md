@@ -17,18 +17,18 @@ This repository is used for documents / code / notes related to the controller a
 ## Workflow - Basics 
 #### How do I get a copy of this repo?
 - Install **Git**: https://help.github.com/en/github/getting-started-with-github/set-up-git
-- Open up a terminal / command prompt and clone this repository: `git clone git@github.com:oxfordcontrol/OxVentControl.git` which will give you a local copy of the master branch in the repository
+- Open up a terminal / command prompt and clone this repository: `git clone git@github.com:oxfordcontrol/OxVentControl.git` which will give you a local copy of the main branch in the repository
 
 #### Do I have to use a terminal?
 - You can also use Git GUIs, e.g. https://desktop.github.com/ or https://www.gitkraken.com/
 
 #### How do I keep my local copy updated?
-- If you are on the master branch you can type `git pull`
+- If you are on the main branch you can type `git pull`
 
 #### How can I add / submit my changes?
-- **The master master branch is protected, so you will have to create a separate branch and open a pull request.**
-- The `master` branch should always reflect the newest agreed on version of the repository
-- Make sure you branch off the latest state of master, i.e. on master type `git pull` or use `git fetch`
+- **The main main branch is protected, so you will have to create a separate branch and open a pull request.**
+- The `main` branch should always reflect the newest agreed on version of the repository
+- Make sure you branch off the latest state of main, i.e. on main type `git pull` or use `git fetch`
 - To create a new branch use: `git checkout -b [branchname]`, e.g. `git checkout -b mg/new_branch`
 - Make changes to files / add new files
 - Take a look at the summary of changed files: `git status` 
@@ -36,10 +36,10 @@ This repository is used for documents / code / notes related to the controller a
 - Commit the new changes (this creates a snapshot of repository state): `git commit -m "Change parameter gamma to 0.5"`
 - Copy your new local branch with the new commits to the Github repository: `git push -u origin mg/new_branch`
 
-- **Before your changes can be merged:** Make sure that you integrate the changes on `master` that others might have added in the meantime. This can be achieved by pulling the `master` changes to yout machine and then *merging* or preferably *rebasing* your commits onto the latest `master` version. See [here](https://gist.github.com/blackfalcon/8428401#keeping-current-with-the-master-branch) for a more detailed explanation.
+- **Before your changes can be merged:** Make sure that you integrate the changes on `main` that others might have added in the meantime. This can be achieved by pulling the `main` changes to yout machine and then *merging* or preferably *rebasing* your commits onto the latest `main` version. See [here](https://gist.github.com/blackfalcon/8428401#keeping-current-with-the-master-branch) for a more detailed explanation.
 - On https://github.com/oxfordcontrol/OxVentControl/ click on `Pull requests` -> `New Pull Request`. 
-- Select `base:master` and `compare:mg/new_branch`
-- All the changes can then be discussed in that pull request before they are approved and added to the master branch.
+- Select `base:main` and `compare:mg/new_branch`
+- All the changes can then be discussed in that pull request before they are approved and added to the main branch.
 #### Useful git commands:
 - https://rogerdudler.github.io/git-guide/
 - https://confluence.atlassian.com/bitbucketserver/basic-git-commands-776639767.html
