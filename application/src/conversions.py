@@ -25,6 +25,29 @@ def analogToTemp(analog):
     :return: The temperature in Celsius
     :rtype: float
     """    
+    return voltageToTemp(analogToVoltage(analog))
+
+def analogToVoltage(analog):
+    """Convert and Arduino ADC reading to a voltage
+
+    :param analog: Raw ADC reading (0-1023)
+    :type analog: int
+    :return: Voltage
+    :rtype: float
+    """    
+
     v = analog*ARDUINO_ANALOG_REFERENCE/ARDUINO_MAX_RAW_ANALOG
+    return v
+
+def voltageToTemp(v):
+    """Convert an AD8495 voltage to a temperature
+
+    :param v: Voltage
+    :type v: float
+    :return: Temperature
+    :rtype: float
+    """    
     t = (v + AD8495_OFFSET)/AD8495_DIVISOR
     return t
+
+

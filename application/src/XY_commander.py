@@ -42,6 +42,8 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(fig)
 
 
+
+
 class GraphWindow(QWidget):
     """
     This "window" is a QWidget. If it has no parent, it
@@ -55,11 +57,11 @@ class GraphWindow(QWidget):
         self.setLayout(layout)
         n_data = 50
         self.xdata = list(range(n_data))
-        self.ydata = [random.randint(0, 10) for i in range(n_data)]
+        self.ydata = [random.randint(0, 80) for i in range(n_data)]
 
         n_data = 50
         self.xdata2 = list(range(n_data))
-        self.ydata2 = [random.randint(0, 10) for i in range(n_data)]
+        self.ydata2 = [random.randint(0, 80) for i in range(n_data)]
 
         self.sc = MplCanvas(self, width=5, height=4, dpi=100)
 
@@ -79,7 +81,7 @@ class GraphWindow(QWidget):
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.sc.axes.plot(self.xdata, self.ydata, 'r')
+            plot_refs = self.sc.axes.plot(self.xdata, self.ydata, 'r', label = 'bed')
             self._plot_ref = plot_refs[0]
         else:
             # We have a reference, we can use it to update the data for that line.
@@ -95,7 +97,7 @@ class GraphWindow(QWidget):
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.sc.axes2.plot(self.xdata2, self.ydata2, 'r')
+            plot_refs = self.sc.axes.plot(self.xdata2, self.ydata2, 'r', label = 'bed2')
             self._plot_ref_2 = plot_refs[0]
         else:
             # We have a reference, we can use it to update the data for that line.
@@ -488,7 +490,7 @@ class PrinterController:
         """Function to request position and velocity data from each uStepper and print it on the LCDs"""
         #print("updating lcd")  
 
-        """this bit does the voltages"""
+        """this bit does the psu data"""
         if QT_POLL_PSU:
             for i in range(0,2): #get power data and display it
                 channel = i+1
@@ -521,11 +523,11 @@ class PrinterController:
             for letter, number in tempData.items():
                 temp = conv.analogToTemp(number)
                 if letter == 'B':                    
-                    #print('Bed Temperature = ' + str(temp))
+                    print('Bed Temperature = ' + str(temp))
                     self._view._graph.update_plot(temp)
                 if letter == 'N':
                     self._view._graph.update_other_plot(temp)
-                    #print('Nozzle Temperature = ' + str(temp))
+                    print('Nozzle Temperature = ' + str(temp))
 
         
 
@@ -904,7 +906,7 @@ class psuController():
     def __init__(self, port):
         """class for controlling a power supply that provides power to the heater elements and the motors"""
         try:
-            self.power = psu_serial.GPD_43038S(port)
+            self.power = psu_serial.GPD_4303S(port)
             self.isConnected = True
         except:
             self.power = psu_serial.GPD_DUMMY
