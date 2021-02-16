@@ -23,4 +23,7 @@ To get around this, try power cycling the uSteppers (unlplug from USB and switch
 Backlash
 ********
 
+Allocation of X and Y axes
+**************************
 
+At the moment, getting the serial numbers is manual. At some point, this will be made automatic.
