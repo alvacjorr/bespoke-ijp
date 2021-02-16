@@ -14,8 +14,8 @@ This documentation is still a Work In Progress. If there's any glaring omissions
 
    background
    userguide
-   programmer
    building
+   programmer
    modules
    issues
 
