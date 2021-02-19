@@ -16,7 +16,7 @@ This documentation is still a Work In Progress. If there's any glaring omissions
    userguide
    building
    programmer
-   modules
+   autodoc/modules
    issues
 
 
