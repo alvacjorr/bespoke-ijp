@@ -7,7 +7,7 @@ from PySide2.QtCore import Slot, Qt, QTimer,QDateTime, Signal
 from constants import *
 class HeaterPIDController():
     def __init__(self,PSUchannel,name,PSUcontroller,sample_time,max_current):
-        self.pid = PID(1, 0.1,0.05, setpoint = 40, output_limits=(0,24),proportional_on_measurement=False, sample_time=sample_time)
+        self.pid = PID(1, 0.1,0.05, setpoint = TEMP_SETPOINT, output_limits=(0,24),proportional_on_measurement=False, sample_time=sample_time)
         self.output = PSUcontroller
         self.channel = PSUchannel
         self.output.power.set_current(max_current, self.channel)
@@ -84,7 +84,9 @@ class PIDGraphWindow(QWidget):
         self.tdata = [10 for i in range(n_data)]
         self.vdata = [10 for i in range(n_data)]
 
+        sp = TEMP_SETPOINT 
 
+        self.sdata = [sp for i in range(n_data)]
 
         self.sc = PIDCanvas(self, width=5, height=4, dpi=100)
 
@@ -92,6 +94,9 @@ class PIDGraphWindow(QWidget):
 
         self.t_plot_ref = None
         self.v_plot_ref = None
+        self.s_plot_ref = None
+
+        
 
         self.show()
 
@@ -105,7 +110,7 @@ class PIDGraphWindow(QWidget):
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.sc.axes.plot(self.xdata, self.tdata, 'r', label = 'bed')
+            plot_refs = self.sc.axes.plot(self.xdata, self.tdata, 'r', label = 'temperature')
             self.t_plot_ref = plot_refs[0]
         else:
             # We have a reference, we can use it to update the data for that line.
@@ -115,12 +120,30 @@ class PIDGraphWindow(QWidget):
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.sc.axes.plot(self.xdata, self.vdata, 'b')
+            plot_refs = self.sc.axes.plot(self.xdata, self.vdata, 'b', label = 'voltage')
             self.v_plot_ref = plot_refs[0]
+            self.sc.axes.legend()
         else:
             # We have a reference, we can use it to update the data for that line.
             self.v_plot_ref.set_ydata(self.vdata)
 
         # Trigger the canvas to update and redraw.
+        self.setpoint_graph()
         self.sc.draw()
+
+    def setpoint_graph(self):
+        if self.s_plot_ref is None:
+            # First time we have no plot reference, so do a normal plot.
+            # .plot returns a list of line <reference>s, as we're
+            # only getting one we can take the first element.
+            plot_refs = self.sc.axes.plot(self.xdata, self.sdata, 'k--', label = 'setpoint')
+            self.s_plot_ref = plot_refs[0]
+            self.sc.axes.legend()
+        else:
+            # We have a reference, we can use it to update the data for that line.
+            self.s_plot_ref.set_ydata(self.sdata)
+
+        # Trigger the canvas to update and redraw.
+        self.sc.draw()
+
 

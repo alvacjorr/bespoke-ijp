@@ -129,6 +129,6 @@ POW_SERIAL_TIMEOUT = 0.01
 #uStepper Axis responsible for temperature readouts
 TEMP_AXIS = 1
 
-
+TEMP_SETPOINT = 70
 
 GRAPH_TEMP_WIDTH = 50 #number of successive points to plot on graph
