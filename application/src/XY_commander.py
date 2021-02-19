@@ -37,13 +37,16 @@ class HeaterPIDController():
         self.pid = PID(1, 0.1,0.05, setpoint = 40, output_limits=(0,24),proportional_on_measurement=False, sample_time=sample_time)
         self.output = PSUcontroller
         self.channel = PSUchannel
-        self.output.power.set_current(max_current)
-        self.update(0)
+        self.output.power.set_current(max_current, self.channel)
+        
         self.temperature = 0
 
         self.graph = PIDGraphWindow(label = name)
 
-    def update(t):
+        self.graph.update_plot(1)
+        self.update(0)
+
+    def update(self,t):
         """Update the PID controller with the most recent temperature reading
 
         :param t: Latest temperature reading
@@ -51,22 +54,32 @@ class HeaterPIDController():
         """        
         self.temperature = t
         control = self.pid(t)
-        set_voltage(control)
+        print('T: ' + str(t) +' V: ' + str(control))
+        self.set_voltage(control)
+
+        self.graph.update_plot(t)
 
 
     def show_graphs(self):
+        return
         self.graph.show()
 
 
 
-    def set_voltage(v):
+    def set_voltage(self,v):
         """Set the output voltage
 
         :param v: voltage
         :type v: float
         """        
-        self.output.power.set_voltage(v,self.channel)
-
+        ch = self.channel
+        v = int(v)
+        #v = "%0.1f" % v
+        msg = "VSET" + str(ch) + ":" + str(v) + "\n"
+        print(msg)
+        #msg = "VSET1:1\n"
+        self.output.power.get_custom(msg,'NOREPLY')
+        #print(self.output.power.get_custom(msg,'REPLY'))
 
 
 class PIDCanvas(FigureCanvasQTAgg):
@@ -78,8 +91,9 @@ class PIDCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(1,2,1)
-        super(MplCanvas, self).__init__(fig)
+        self.axes = fig.add_subplot(1,1,1)
+        self.axes.set_ylim([0, 100])
+        super(PIDCanvas, self).__init__(fig)
 
 
 
@@ -230,25 +244,24 @@ class PrinterUi(QMainWindow):
         self.setCentralWidget(self._centralWidget)
         self._centralWidget.setLayout(self.generalLayout)
 
-
-        
-        self.createJoypad()
+        self.inputLayout = QGridLayout()
+        self.monitorLayout = QGridLayout()
+        self.miLayout = QGridLayout()
+        self.miLayout.addLayout(self.inputLayout,0,0)
+        self.miLayout.addLayout(self.monitorLayout,0,1)
+        self.createJoypad(self.inputLayout)
         self.goToLayout = QGridLayout()
-        self.createGoToBox()
-        self.createGoToAngleBox()
-        self.createGoToMMBox()
-        self.createPositionIndicator()
-        self.createHeaterIndicator()
+        self.createGoToBox(self.inputLayout)
+        self.createGoToAngleBox(self.inputLayout)
+        self.createGoToMMBox(self.inputLayout)
+        self.createPositionIndicator(self.monitorLayout)
+        self.createHeaterIndicator(self.monitorLayout)
+        
+        self.createToolBox(self.goToLayout)
+        self.createScriptEditor(self.goToLayout)
+
+        self.generalLayout.addLayout(self.miLayout)
         self.generalLayout.addLayout(self.goToLayout)
-        self.createToolBox()
-        self.createScriptEditor()
-        self.show_graph_window()
-
-    def show_graph_window(self):
-        self._graph = GraphWindow()
-        self._graph.show()
-
-      
 
         
     def keyPressEvent(self,event):
@@ -257,8 +270,7 @@ class PrinterUi(QMainWindow):
         super(PrinterUi, self).keyPressEvent(event)
         self.keyPressed.emit(event.key())
 
-
-    def createJoypad(self):
+    def createJoypad(self,l):
         """Creates a joypad to control the XY motion, with a 'DROP' button in the middle
         """
         self.joypadButtons = {}
@@ -280,9 +292,9 @@ class PrinterUi(QMainWindow):
         joypadBox.setMinimumWidth(QT_JOYPAD_WIDTH)
         joypadBox.setMaximumHeight(QT_JOYPAD_HEIGHT)
         joypadBox.setMaximumWidth(QT_JOYPAD_WIDTH)
-        self.generalLayout.addWidget(joypadBox) #check indent
+        l.addWidget(joypadBox,0,0,3,1) 
 
-    def createPositionIndicator(self):
+    def createPositionIndicator(self,l):
         """Create an LCD position indicator for X and Y
         """
         PILayout = QGridLayout()
@@ -310,9 +322,9 @@ class PrinterUi(QMainWindow):
         PIBox = QGroupBox("Current Position")
         PIBox.setLayout(PILayout)
 
-        self.goToLayout.addWidget(PIBox,1,0,1,3)
+        l.addWidget(PIBox,1,0,1,3)
 
-    def createHeaterIndicator(self):
+    def createHeaterIndicator(self,l):
         HeaterLayout = QGridLayout()
         self.HeaterLCDScreens = {}
         self.HeaterLCDLabels = {}
@@ -339,9 +351,9 @@ class PrinterUi(QMainWindow):
         HeaterBox = QGroupBox("Heater Power")
         HeaterBox.setLayout(HeaterLayout)
 
-        self.goToLayout.addWidget(HeaterBox,2,0,1,3)
+        l.addWidget(HeaterBox,2,0,1,3)
 
-    def createGoToBox(self):
+    def createGoToBox(self,l):
         """Creates a box with a go to Steps button and two spinboxes to set X and Y in steps"""
         GTLayout = QGridLayout()
         self.GoToSpinners = {}
@@ -359,9 +371,9 @@ class PrinterUi(QMainWindow):
         GTBox.setLayout(GTLayout)
         GTBox.setMinimumWidth(QT_XY_SETTER_WIDTH)
         GTBox.setMaximumWidth(QT_XY_SETTER_WIDTH)
-        self.goToLayout.addWidget(GTBox,0,0)
+        l.addWidget(GTBox,0,1)
             
-    def createGoToAngleBox(self):
+    def createGoToAngleBox(self,l):
         """Creates a box with a go to Steps button and two spinboxes to set X and Y in degrees"""
         GTALayout = QGridLayout()
         self.GoToAngleSpinners = {}
@@ -380,9 +392,9 @@ class PrinterUi(QMainWindow):
         GTABox.setLayout(GTALayout)
         GTABox.setMinimumWidth(QT_XY_SETTER_WIDTH)
         GTABox.setMaximumWidth(QT_XY_SETTER_WIDTH)
-        self.goToLayout.addWidget(GTABox,0,1)
+        l.addWidget(GTABox,1,1)
         
-    def createGoToMMBox(self):
+    def createGoToMMBox(self,l):
         """Creates a box with a go to Steps button and two spinboxes to set X and Y in degrees"""
         Layout = QGridLayout()
         self.GoToMMSpinners = {}
@@ -401,23 +413,27 @@ class PrinterUi(QMainWindow):
         GTABox.setLayout(Layout)
         GTABox.setMinimumWidth(QT_XY_SETTER_WIDTH)
         GTABox.setMaximumWidth(QT_XY_SETTER_WIDTH)
-        self.goToLayout.addWidget(GTABox,0,2)
+        l.addWidget(GTABox,2,1)
         
-    def createToolBox(self):
+    def createToolBox(self,l):
         """Generates a box for general tools/actions eg homing, panic etc
         """
         ToolLayout = QGridLayout()
         self.homeButton = QPushButton('home')
         self.stopButton = QPushButton('stop')
         self.stopButton.setStyleSheet("background-color: red;color: white")
+        self.psuOnButton = QPushButton('heater on')
+        self.psuOffButton = QPushButton('heater off')
         ToolLayout.addWidget(self.homeButton,0,0)
         ToolLayout.addWidget(self.stopButton,0,1)
+        ToolLayout.addWidget(self.psuOnButton,0,2)
+        ToolLayout.addWidget(self.psuOffButton,0,3)
         
         ToolBox = QGroupBox("Tools")
         ToolBox.setLayout(ToolLayout)
-        self.goToLayout.addWidget(ToolBox)
+        l.addWidget(ToolBox)
 
-    def createScriptEditor(self):
+    def createScriptEditor(self,l):
         """Creates a text entry box and execute button for scripts"""
         ScriptLayout = QGridLayout()
         self.scriptEditor = QPlainTextEdit()
@@ -427,7 +443,7 @@ class PrinterUi(QMainWindow):
         ScriptLayout.addWidget(self.scriptExecuteButton)
         ScriptBox = QGroupBox("Script")
         ScriptBox.setLayout(ScriptLayout)
-        self.generalLayout.addWidget(ScriptBox)
+        l.addWidget(ScriptBox)
 
     def setExecuteStatusUI(self, status):
         if status:
@@ -439,18 +455,10 @@ class PrinterUi(QMainWindow):
 
         
 class PrinterController:
-    #Printer controller cclass. master for basically everything.
+    """Printer controller cclass. master for basically everything."""
     def __init__(self, view, xy, jetdrive, heater):
         """Create a printer controller. Acts as a bridge between UI and the various serial devices
 
-        :param view: [description]
-        :type view: [type]
-        :param xy: [description]
-        :type xy: [type]
-        :param jetdrive: [description]
-        :type jetdrive: [type]
-        :param heater: [description]
-        :type heater: [type]
         """
         self._view = view
         self._xy = xy
@@ -466,6 +474,10 @@ class PrinterController:
         if QT_POLLER_ENABLED:
             time.sleep(1)
             self.startPoller()
+        
+        self.bed_controller = HeaterPIDController(1,'ch1 test',self._heater,QT_POLLER_TIME_MS/1000, 2.5)
+        #self.bed_controller.show_graphs()
+        self._view.generalLayout.addWidget(self.bed_controller.graph)
 
 
 
@@ -506,6 +518,8 @@ class PrinterController:
         self._view.joypadButtons['DROP'].clicked.connect(partial(self.updatePositionIndicator))
         self._view.homeButton.clicked.connect(partial(self._xy.homeBoth))
         self._view.stopButton.clicked.connect(partial(self._xy.stopAll))
+        self._view.psuOnButton.clicked.connect(self._heater.power.turn_on)
+        self._view.psuOffButton.clicked.connect(self._heater.power.turn_off)
         self._view.GoToButton.clicked.connect(partial(self.goToFunc))
         self._view.GoToAngleButton.clicked.connect(partial(self.goToAngleFunc))
         self._view.GoToMMButton.clicked.connect(partial(self.goToMMFunc))
@@ -588,8 +602,9 @@ class PrinterController:
         """Update LCDs with mechanical data from uSteppers"""
         #print("updating lcd")  
 
-        self.updateTemperatureIndicator()
+        
         self.updatePowerSupplyIndicator()
+        self.updateTemperatureIndicator()
                        
                     
 
@@ -615,11 +630,12 @@ class PrinterController:
         for letter, number in tempData.items():
             temp = conv.analogToTemp(number)
             if letter == 'B':                    
-                print('Bed Temperature = ' + str(temp))
-                self._view._graph.update_plot(temp)
-            if letter == 'N':
-                self._view._graph.update_other_plot(temp)
-                print('Nozzle Temperature = ' + str(temp))
+                #print('Bed Temperature = ' + str(temp))
+                self.bed_controller.update(temp)
+            #if letter == 'N':
+                #print('Nozzle Temperature = ' + str(temp))
+
+            
 
 
     def updatePowerSupplyIndicator(self):
@@ -678,25 +694,18 @@ class psuController():
             self.isConnected = False
             print('PSU not found - using dummy instead.')
         self.power.turn_off()
-        self.power.set_voltage(POW_HEATER_NOZZLE_INIT_VOLTAGE,POW_HEATER_NOZZLE_CHANNEL)
-        self.power.set_current(POW_HEATER_NOZZLE_MAX_CURRENT,POW_HEATER_NOZZLE_CHANNEL)
-        self.power.set_voltage(POW_HEATER_BED_INIT_VOLTAGE,POW_HEATER_BED_CHANNEL)
-        self.power.set_current(POW_HEATER_BED_MAX_CURRENT,POW_HEATER_BED_CHANNEL)
+        #self.power.set_voltage(POW_HEATER_NOZZLE_INIT_VOLTAGE,POW_HEATER_NOZZLE_CHANNEL)
+        #self.power.set_current(POW_HEATER_NOZZLE_MAX_CURRENT,POW_HEATER_NOZZLE_CHANNEL)
+        #self.power.set_voltage(POW_HEATER_BED_INIT_VOLTAGE,POW_HEATER_BED_CHANNEL)
+        #self.power.set_current(POW_HEATER_BED_MAX_CURRENT,POW_HEATER_BED_CHANNEL)
         self.power.turn_on()
-        self.toggle = False
 
-    def change(self):
-        if self.toggle:
-            self.power.turn_off()
-        else:
-            self.power.turn_on()
-        self.toggle = ~self.toggle
 
 
 
 
 def main():
-    """[Main function for the application]
+    """Main function for the application
     """
     print(WELCOME_MESSAGE)
     # Create an instance of QApplication

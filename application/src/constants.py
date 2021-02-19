@@ -22,7 +22,7 @@ LETTER_TO_LCD = {'A':'angle','S':'steps','V':'V_measured','D':'V_target'}
 
 #Heater LCD stuff
 
-HeaterLCDvals = {'Channel':0,'VSET':1,'ISET':2,'VOUT':3,'IOUT':4}
+HeaterLCDvals = {'Channel':0,'VSET':1,'ISET':3,'VOUT':2,'IOUT':4}
 
 HeaterChannelNames = {0:'nozzle',1:'bed'}
 
@@ -102,7 +102,7 @@ QT_JOYSTICK_STEP_INCREMENT = 10000
 
 QT_POLLER_ENABLED = 1
 
-QT_POLLER_TIME_MS = 500
+QT_POLLER_TIME_MS = 2000
 
 QT_POLL_PSU = True
 

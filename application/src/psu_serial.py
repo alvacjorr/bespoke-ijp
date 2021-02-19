@@ -43,10 +43,15 @@ class GPD_4303S:
             return 'comm locked'
 
     def query_async(self,message): #asynchronously gets a query and returns a unique ID
+        print('Querying: ' + message)
         if message in self.async_query_buffer:
+            print(message + ' already in buffer')
+            print(self.async_query_buffer)
             return
         self.async_query_buffer.append(message)
         self.write(message)
+        print(message + ' added to buffer')
+        print(self.async_query_buffer)
 
 
         return self.async_query_buffer.index(message)
@@ -104,8 +109,8 @@ class GPD_4303S:
         :rtype: string
         """        
         index = self.async_query_buffer.index(message)
-
-        #print ('popping index ' + str(index))
+        print('**********')
+        print ('requesting ' + message + ' at index ' + str(index))
         b = True
         try:
             response = self.async_reply_buffer[index]
@@ -115,7 +120,7 @@ class GPD_4303S:
                 b = False
                 response = 'EMPTY'
         except IndexError: 
-            #print('response not available yet!!')
+            print('response not available yet!!')
             response = 'EMPTY'
             b = False
         if b:    
@@ -124,8 +129,10 @@ class GPD_4303S:
             query = self.async_query_buffer.pop(index)
             #print('for query:')
             #print(query)
-        #print(self.async_reply_buffer)
-        #print(self.async_query_buffer)
+        print('Buffers:')
+        print(self.async_reply_buffer)
+        print(self.async_query_buffer)
+        print('_________________')
 
         return response
 
@@ -232,6 +239,24 @@ class GPD_4303S:
         comString = cmd + str(ch) + "?\n"
         if async_mode == 'QUERY':
             self.query_async(comString)
+            return
+        if async_mode == 'REPLY':
+            try:
+                return self.truncate_float_reply(self.get_async_response(comString))
+            except ValueError:
+                #print('a')
+                return 'EMPTY'
+
+    def get_custom(self,msg,async_mode):
+        """Generic method to retrieve data from the PSU asynchronously with a custom msg.
+
+        """
+        comString = msg
+        if async_mode == 'QUERY':
+            self.query_async(comString)
+            return
+        if async_mode == 'NOREPLY':
+            self.write(comString)
             return
         if async_mode == 'REPLY':
             try:
