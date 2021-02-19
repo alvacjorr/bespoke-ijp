@@ -61,6 +61,7 @@ AD8495_DIVISOR = 0.005
 #up, down, left and right
 
 #WASD mappings
+
 KEY_PRINTER_UP = 87
 KEY_PRINTER_DOWN = 83
 KEY_PRINTER_RIGHT = 68
@@ -125,4 +126,9 @@ POW_HEATER_BED_MAX_CURRENT = 2
 
 POW_SERIAL_TIMEOUT = 0.01
 
+#uStepper Axis responsible for temperature readouts
 TEMP_AXIS = 1
+
+
+
+GRAPH_TEMP_WIDTH = 50 #number of successive points to plot on graph
