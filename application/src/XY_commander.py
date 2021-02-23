@@ -239,7 +239,7 @@ class PrinterUi(QMainWindow):
             HeaterLayout.addWidget(QLabel(valName),0,1+valIndex)
             
             
-        HeaterBox = QGroupBox("Heater Power")
+        HeaterBox = QGroupBox("Heater Power (TESTING ONLY!!)")
         HeaterBox.setLayout(HeaterLayout)
 
         l.addWidget(HeaterBox,2,0,1,3)
@@ -366,9 +366,13 @@ class PrinterController:
             time.sleep(1)
             self.startPoller()
         
-        self.bed_controller = HeaterPIDController(1,'ch1 test',self._heater,QT_POLLER_TIME_MS/1000, 2.5)
+        self.bed_controller = HeaterPIDController(1,'Bed',self._heater,QT_POLLER_TIME_MS/1000, 2.5)
         #self.bed_controller.show_graphs()
-        self._view.generalLayout.addWidget(self.bed_controller.graph)
+        self._view.generalLayout.addWidget(self.bed_controller._ui.showButton)
+
+        self.nozzle_controller = HeaterPIDController(2,'Nozzle',self._heater,QT_POLLER_TIME_MS/1000, 2.5)
+        #self.bed_controller.show_graphs()
+        self._view.generalLayout.addWidget(self.nozzle_controller._ui.showButton)
 
 
 
@@ -523,8 +527,9 @@ class PrinterController:
             if letter == 'B':                    
                 #print('Bed Temperature = ' + str(temp))
                 self.bed_controller.update(temp)
-            #if letter == 'N':
+            if letter == 'N':
                 #print('Nozzle Temperature = ' + str(temp))
+                self.nozzle_controller.update(temp)
 
             
 
@@ -584,11 +589,6 @@ class psuController():
             self.power = psu_serial.GPD_DUMMY
             self.isConnected = False
             print('PSU not found - using dummy instead.')
-        self.power.turn_off()
-        #self.power.set_voltage(POW_HEATER_NOZZLE_INIT_VOLTAGE,POW_HEATER_NOZZLE_CHANNEL)
-        #self.power.set_current(POW_HEATER_NOZZLE_MAX_CURRENT,POW_HEATER_NOZZLE_CHANNEL)
-        #self.power.set_voltage(POW_HEATER_BED_INIT_VOLTAGE,POW_HEATER_BED_CHANNEL)
-        #self.power.set_current(POW_HEATER_BED_MAX_CURRENT,POW_HEATER_BED_CHANNEL)
         self.power.turn_on()
 
 

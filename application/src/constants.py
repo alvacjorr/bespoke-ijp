@@ -104,7 +104,7 @@ QT_POLLER_ENABLED = 1
 
 QT_POLLER_TIME_MS = 2000
 
-QT_POLL_PSU = True
+QT_POLL_PSU = False
 
 QT_STYLE_EXECUTE_READY = "background-color: green; color: white"
 
@@ -126,9 +126,21 @@ POW_HEATER_BED_MAX_CURRENT = 2
 
 POW_SERIAL_TIMEOUT = 0.01
 
+#Control Loop stuff
+
+PID_PROPORTIONAL_ON_MEASUREMENT = False
+
+# Proportional Integral and Derivative terms
+
+PID_P = 1
+PID_I = 0.05
+PID_D =  0.05
+
+
+
 #uStepper Axis responsible for temperature readouts
 TEMP_AXIS = 1
 
-TEMP_SETPOINT = 70
+TEMP_SETPOINT = 20 #default temperature setpoint
 
 GRAPH_TEMP_WIDTH = 50 #number of successive points to plot on graph
