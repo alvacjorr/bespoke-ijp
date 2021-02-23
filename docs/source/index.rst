@@ -17,6 +17,7 @@ This documentation is still a Work In Progress. If there's any glaring omissions
    building
    programmer
    autodoc/modules
+   funcgen
    issues
 
 
