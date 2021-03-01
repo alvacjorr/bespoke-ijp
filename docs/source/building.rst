@@ -76,6 +76,16 @@ If you have a python venv, now is the time to activate it. If not, don't worry a
 
 This may take a while. 
 
+Optional: Add Function Generators
+---------------------------------
+
+If you are using this software with a Tektronix AFG2021 under Windows, you will need to install TekVISA.
+Under Linux, this may not be necessary, but may require a tweak to the pyvisa setup.
+At some point I may implement automatic switching.
+
+A GW INSTEK AFG-2105 does not require a driver, instead being directly addressable as a serial port (like the Arduinos are!)
+
+
 Uploading the firmware to the uSteppers
 ----------------------------------------
 
