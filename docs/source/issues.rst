@@ -23,6 +23,8 @@ To get around this, try power cycling the uSteppers (unlplug from USB and switch
 Backlash
 ********
 
+The system definitely has some backlash. The exact amount is yet to be quantified however!
+
 Allocation of X and Y axes
 **************************
 

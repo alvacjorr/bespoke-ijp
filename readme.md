@@ -17,7 +17,7 @@ This repository is used for documents / code / notes related to the controller a
 ## Workflow - Basics 
 #### How do I get a copy of this repo?
 - Install **Git**: https://help.github.com/en/github/getting-started-with-github/set-up-git
-- Open up a terminal / command prompt and clone this repository: `git clone git@github.com:oxfordcontrol/OxVentControl.git` which will give you a local copy of the main branch in the repository
+- Open up a terminal / command prompt and clone this repository: `git clone https://github.com/thekeeno/bespoke-ijp` which will give you a local copy of the main branch in the repository
 
 #### Do I have to use a terminal?
 - You can also use Git GUIs, e.g. https://desktop.github.com/ or https://www.gitkraken.com/

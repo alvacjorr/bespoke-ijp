@@ -144,3 +144,10 @@ TEMP_AXIS = 1
 TEMP_SETPOINT = 20 #default temperature setpoint
 
 GRAPH_TEMP_WIDTH = 50 #number of successive points to plot on graph
+
+
+#AFG2021 settings
+
+AFG2021_VISA_PORT = 'USB::0x0699::0x0349::C013148::INSTR'
+
+#AFG-2105 settings
