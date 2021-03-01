@@ -498,7 +498,7 @@ class PrinterController:
         #print("updating lcd")  
 
         
-        self.updatePowerSupplyIndicator()
+        #self.updatePowerSupplyIndicator()
         self.updateTemperatureIndicator()
                        
                     

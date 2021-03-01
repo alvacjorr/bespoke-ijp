@@ -16,7 +16,7 @@ class HeaterPIDController():
         
         self.temperature = 0
 
-
+        self.last_control = -1
         
 
         self._ui = PID_Layout(label = name)
@@ -25,11 +25,11 @@ class HeaterPIDController():
 
         self._connectSignals()
         self._ui.graph.update_plot(0,0,0)
-        self.update(0)
+        #self.update(0)
 
     def getNewSetpointFromUI(self):
         new_t = int(self._ui.setter.setpointSpin.text())
-        print(new_t)
+        
         self.set_setpoint(new_t)
         return
 
@@ -45,9 +45,12 @@ class HeaterPIDController():
         """        
         self.temperature = t
         control = self.pid(t)
+        if control is not self.last_control:
+            self.set_voltage(control)
+            self.last_control = control
         #print(self.pid.components)
         #print('T: ' + str(t) +' V: ' + str(control))
-        self.set_voltage(control)
+        
 
         self._ui.graph.update_plot(t, control,self.get_setpoint())
         self._ui.setter.update(t,self.get_setpoint())
@@ -126,12 +129,17 @@ class PID_Layout(QWidget):
         #self.show()
 
 
+    def toggle(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
 
 
     def createShowButton(self):
         showLabel = 'Heater Control: ' + self.label
         self.showButton = QPushButton(showLabel)
-        self.showButton.clicked.connect(partial(self.show))
+        self.showButton.clicked.connect(partial(self.toggle))
 
 
 class PID_Setter(QGroupBox):
@@ -203,12 +211,12 @@ class PIDGraphWindow(QWidget):
         self.setLayout(layout)
         n_data = GRAPH_TEMP_WIDTH
         self.xdata = list(range(n_data))
-        self.tdata = [10 for i in range(n_data)]
-        self.vdata = [10 for i in range(n_data)]
+        self.tdata = [0 for i in range(n_data)]
+        self.vdata = [0 for i in range(n_data)]
 
         sp = TEMP_SETPOINT 
 
-        self.sdata = [sp for i in range(n_data)]
+        self.sdata = [0 for i in range(n_data)]
 
         self.sc = PIDCanvas(self, width=5, height=4, dpi=100)
 
@@ -274,7 +282,5 @@ class PIDGraphWindow(QWidget):
             # We have a reference, we can use it to update the data for that line.
             self.s_plot_ref.set_ydata(self.sdata)
 
-        # Trigger the canvas to update and redraw.
-        self.sc.draw()
 
 
