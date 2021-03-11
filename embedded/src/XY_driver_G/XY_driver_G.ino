@@ -22,12 +22,18 @@ struct{
   float homeVelocity = 40.0; // In rpm
   int8_t homeThreshold = 4;
   bool homeDirection = CW; // In rpm
+  uint32_t APulseLengthMicros = 5;
+  uint32_t BPulseLengthMicros = 5;
+  uint32_t ABDelayMicros = 10000;
 } conf;
 
 void setup() {
 
+
+
   UARTPORT.begin(115200);
   // DEBUGPORT.begin(115200);
+
 
    
   stepper.setup(CLOSEDLOOP,200);
@@ -64,12 +70,21 @@ void setup() {
   comm.addCommand( GCODE_REQUEST_DATA,    &uart_sendData );
   comm.addCommand( GCODE_REQUEST_CONFIG,  &uart_sendConfig );
   comm.addCommand( GCODE_REQUEST_TEMP,  &uart_sendTemp);
+
+  comm.addCommand( GCODE_TRIGGER_A, &uart_trigger);
+  comm.addCommand( GCODE_TRIGGER_B, &uart_trigger);
+  comm.addCommand( GCODE_SET_TRIGGER_AB_DELAY, &uart_configureTrigger);
+  
   
   // Called if the packet and checksum is ok, but the command is unsupported
   comm.addCommand( NULL, uart_default );
 
   // Show list off all commands
   // comm.printCommands();
+
+  pinMode(PIN_TRIGGER_A,OUTPUT);
+
+  pinMode(PIN_TRIGGER_B,OUTPUT);
 }
 
 void loop() {
@@ -265,6 +280,44 @@ void uart_sendTemp(char *cmd, char *data){
   sprintf(buf + strlen(buf), "N%s B%s", strNozzle, strBed);
 
   comm.send(buf);
+}
+
+void uart_trigger(char *cmd, char *data){
+
+  if( !strcmp(cmd, GCODE_TRIGGER_A )){
+    digitalWrite(PIN_TRIGGER_A,HIGH);
+    delayMicroseconds(conf.APulseLengthMicros);
+    digitalWrite(PIN_TRIGGER_A,LOW);
+    delayMicroseconds(conf.ABDelayMicros);
+    digitalWrite(PIN_TRIGGER_B,HIGH);
+    delayMicroseconds(conf.BPulseLengthMicros);
+    digitalWrite(PIN_TRIGGER_B,LOW) ;
+    }
+  else if ( !strcmp(cmd, GCODE_TRIGGER_B )){
+    digitalWrite(PIN_TRIGGER_B,HIGH);
+    delayMicroseconds(conf.BPulseLengthMicros);
+    digitalWrite(PIN_TRIGGER_B,LOW) ;
+    }
+  comm.send("OK");
+
+}
+
+void uart_configureTrigger(char *cmd, char *data){ 
+
+
+  int32_t ALength    = conf.APulseLengthMicros;
+  int32_t BLength = conf.BPulseLengthMicros;
+  int32_t ABDelay       = conf.ABDelayMicros;
+
+  comm.value("A", &ALength);
+  comm.value("B", &BLength);
+  comm.value("D", &ABDelay);
+
+  conf.APulseLengthMicros   = ALength;
+  conf.BPulseLengthMicros  = BLength;
+  conf.ABDelayMicros  = ABDelay;
+ 
+  comm.send("OK"); // Tell GUI homing is done
 }
 
 /** Implemented on the WiFi shield */

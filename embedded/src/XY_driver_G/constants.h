@@ -24,8 +24,15 @@
 
 #define BAUD_RATE 115200
 
-
+//IJP-specific codes
 #define GCODE_REQUEST_TEMP    "M17"
+#define GCODE_SET_TRIGGER_AB_DELAY "M18"
+#define GCODE_TRIGGER_A "M19"
+#define GCODE_TRIGGER_B "M20"
+
+
+#define PIN_TRIGGER_A 2
+#define PIN_TRIGGER_B 3
 
 #define PIN_TEMP_BED A0
 #define PIN_TEMP_NOZZLE A1
