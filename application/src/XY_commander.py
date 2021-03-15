@@ -409,8 +409,8 @@ class PrinterController:
                 btn.clicked.connect(partial(self.buttonXY, btnText))
 
         
-        self._view.joypadButtons['DROP'].clicked.connect(partial(self._jetdrive.fire))
-        self._view.joypadButtons['DROP'].clicked.connect(partial(self.updatePositionIndicator))
+        self._view.joypadButtons['DROP'].clicked.connect(partial(self._xy.trigger,TRIGGER_AXIS,'A'))
+        #self._view.joypadButtons['DROP'].clicked.connect(partial(self.updatePositionIndicator))
         self._view.homeButton.clicked.connect(partial(self._xy.homeBoth))
         self._view.stopButton.clicked.connect(partial(self._xy.stopAll))
         self._view.psuOnButton.clicked.connect(self._heater.power.turn_on)
@@ -426,6 +426,8 @@ class PrinterController:
             target = int(self._view.GoToSpinners[i].text())
             #print(target)
             self._xy.moveStepsAbsolute(i,target)
+
+
 
     def goToAngleFunc(self):
         for i in (0,1):

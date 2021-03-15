@@ -136,10 +136,12 @@ PID_P = 1
 PID_I = 0.05
 PID_D =  0.05
 
+#uStepper Axis responsible for trigger control
 
+TRIGGER_AXIS = 0
 
 #uStepper Axis responsible for temperature readouts
-TEMP_AXIS = 1
+TEMP_AXIS = 0
 
 TEMP_SETPOINT = 20 #default temperature setpoint
 

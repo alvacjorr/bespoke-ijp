@@ -210,6 +210,24 @@ class XYSerialInterface:
         parsed = self.parseData(reply)
         return parsed
 
+    def trigger(self,axis,trigger):
+        if trigger == 'A':
+            msg = self.GTriggerA()
+        elif trigger == 'B':
+            msg = self.GTriggerB()
+        self.command(axis,msg)
+
+        
+
+
+    def GTriggerA(self):
+        datastring = 'M19 \n'
+        return datastring.encode('utf-8')
+
+    def GTriggerB(self):
+        datastring = 'M20 \n'
+        return datastring.encode('utf-8')
+
     def parseData(self, data):
         """parse data provided in format DATA A0.03 S0 V0.00 D0.00 from the M15 Gcode.
 
