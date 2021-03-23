@@ -1,0 +1,10 @@
+nozzle dia 3.5
+depth 12.7
+
+minicut width 1
+height 4.577
+
+
+photofluor small dia 5
+large dia 9
+depth 20
