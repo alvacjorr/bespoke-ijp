@@ -33,7 +33,8 @@
 
 #define PIN_TRIGGER_A 2
 #define PIN_TRIGGER_B 3
+#define PIN_TRIGGER_C 4
+#define PIN_TRIGGER_D 5
 
 #define PIN_TEMP_BED A0
 #define PIN_TEMP_NOZZLE A1
-

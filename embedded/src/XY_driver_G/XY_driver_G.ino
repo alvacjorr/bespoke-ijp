@@ -22,7 +22,7 @@ struct{
   float homeVelocity = 40.0; // In rpm
   int8_t homeThreshold = 4;
   bool homeDirection = CW; // In rpm
-  uint32_t APulseLengthMicros = 5;
+  uint32_t APulseLengthMicros = 20;
   uint32_t BPulseLengthMicros = 5;
   uint32_t ABDelayMicros = 10000;
 } conf;
