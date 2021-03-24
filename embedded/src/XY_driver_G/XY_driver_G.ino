@@ -178,6 +178,8 @@ void loop()
 
   if (stepper.driver.getVelocity() == 0)
     stepper.moveSteps(0); // Enter positioning mode again
+
+
 }
 
 /* 
@@ -378,13 +380,18 @@ void uart_sendTemp(char *cmd, char *data)
   comm.send(buf);
 }
 
-void uart_trigger(char *cmd, char *data)
-{
-
+void trigger(){
   noInterrupts();
   TIMSK3 |= (1 << TOIE3);
   
   interrupts();
+
+}
+
+void uart_trigger(char *cmd, char *data)
+{
+  trigger();
+
 
   comm.send("OK");
 }
