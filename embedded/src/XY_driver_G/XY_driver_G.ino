@@ -25,7 +25,15 @@ struct{
   uint32_t APulseLengthMicros = 20;
   uint32_t BPulseLengthMicros = 5;
   uint32_t ABDelayMicros = 10000;
+  int timerStart = 65264; //value the timer stats at to count up to 65536. this value is abous 20us
 } conf;
+
+//timer toggle stuff
+
+bool triggerFlag = 0;
+
+
+
 
 void setup() {
 
@@ -85,11 +93,47 @@ void setup() {
   pinMode(PIN_TRIGGER_A,OUTPUT);
 
   pinMode(PIN_TRIGGER_B,OUTPUT);
+
+  // initialize timer3 - based on code from http://www.letmakerobots.com/node/28278
+
+  
+  noInterrupts();           // disable all interrupts
+  TCCR3A = 0;
+  
+  TCCR3B = 0;
+
+  TCNT3 = 0;            
+  OCR3A = conf.timerStart; // preload timer 65536-16MHz*period
+  TCCR3B |= (1 << CS30);    // this is a very fast toggle so we don't need a prescaler. ie presacler = 1
+  TIMSK3 |= (1 << TOIE3);   // enable timer overflow interrupt
+
+ 
+  interrupts();             // enable all interrupts
+}
+
+//ISR for the trigger
+
+ISR(TIMER3_OVF_vect)        // interrupt service routine that wraps a user defined function supplied by attachInterrupt
+{
+  if(triggerFlag){
+    TCNT3 = conf.timerStart;
+    digitalWrite(LED_BUILTIN, HIGH); //go high
+  }
+  else{
+    TCNT3 = conf.timerStart;
+    digitalWrite(LED_BUILTIN, LOW); //go low
+    TIMSK3 = 0; //disable the interrupts so that this pulse is only seen once.
+  }
+               
+  triggerFlag = !triggerFlag; //toggle the flag.
 }
 
 void loop() {
   // Process serial data, and call functions if any commands if received.
   comm.run();
+ 
+   
+
 
   // Feed the gcode handler serial data
   if( UARTPORT.available() > 0 )
@@ -284,20 +328,25 @@ void uart_sendTemp(char *cmd, char *data){
 
 void uart_trigger(char *cmd, char *data){
 
-  if( !strcmp(cmd, GCODE_TRIGGER_A )){
-    digitalWrite(PIN_TRIGGER_A,HIGH);
-    delayMicroseconds(conf.APulseLengthMicros);
-    digitalWrite(PIN_TRIGGER_A,LOW);
-    delayMicroseconds(conf.ABDelayMicros);
-    digitalWrite(PIN_TRIGGER_B,HIGH);
-    delayMicroseconds(conf.BPulseLengthMicros);
-    digitalWrite(PIN_TRIGGER_B,LOW) ;
-    }
-  else if ( !strcmp(cmd, GCODE_TRIGGER_B )){
-    digitalWrite(PIN_TRIGGER_B,HIGH);
-    delayMicroseconds(conf.BPulseLengthMicros);
-    digitalWrite(PIN_TRIGGER_B,LOW) ;
-    }
+  noInterrupts();
+  TIMSK3 |= (1 << TOIE3);
+  //startTime = 65300;
+  interrupts(); 
+
+//  if( !strcmp(cmd, GCODE_TRIGGER_A )){
+//    digitalWrite(PIN_TRIGGER_A,HIGH);
+//    delayMicroseconds(conf.APulseLengthMicros);
+//    digitalWrite(PIN_TRIGGER_A,LOW);
+//    delayMicroseconds(conf.ABDelayMicros);
+//    digitalWrite(PIN_TRIGGER_B,HIGH);
+//    delayMicroseconds(conf.BPulseLengthMicros);
+//    digitalWrite(PIN_TRIGGER_B,LOW) ;
+//    }
+//  else if ( !strcmp(cmd, GCODE_TRIGGER_B )){
+//    digitalWrite(PIN_TRIGGER_B,HIGH);
+//    delayMicroseconds(conf.BPulseLengthMicros);
+//    digitalWrite(PIN_TRIGGER_B,LOW) ;
+//    }
   comm.send("OK");
 
 }
@@ -308,16 +357,19 @@ void uart_configureTrigger(char *cmd, char *data){
   int32_t ALength    = conf.APulseLengthMicros;
   int32_t BLength = conf.BPulseLengthMicros;
   int32_t ABDelay       = conf.ABDelayMicros;
+  int32_t tS = conf.timerStart;
 
   comm.value("A", &ALength);
   comm.value("B", &BLength);
   comm.value("D", &ABDelay);
+  
 
   conf.APulseLengthMicros   = ALength;
   conf.BPulseLengthMicros  = BLength;
   conf.ABDelayMicros  = ABDelay;
+  conf.timerStart = 65536 - (16 * (ALength-3)); //derive value of OCR3A from the A Pulse Length. NB the -3 is just a fudge. minimum value of 12us currently!!
  
-  comm.send("OK"); // Tell GUI homing is done
+  comm.send("OK"); 
 }
 
 /** Implemented on the WiFi shield */
