@@ -140,6 +140,10 @@ PID_D =  0.05
 
 TRIGGER_AXIS = 0
 
+TRIGGER_MAX_TIME = 1000
+
+TRIGGER_MIN_TIME = 10
+
 #uStepper Axis responsible for temperature readouts
 TEMP_AXIS = 0
 

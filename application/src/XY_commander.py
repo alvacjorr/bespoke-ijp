@@ -124,15 +124,15 @@ class TriggerWindow(QWidget):
         layout.addWidget(QLabel('LED Delay/us'))
 
         
-        self.LEDDelaySpin = QSpinBox(minimum = 10, maximum = 1000)
+        self.LEDDelaySpin = QSpinBox(minimum = TRIGGER_MIN_TIME, maximum = TRIGGER_MAX_TIME)
         layout.addWidget(self.LEDDelaySpin)
         
         layout.addWidget(QLabel('LED Exposure/us'))
 
-        self.LEDExposureSpin = QSpinBox(minimum = 10, maximum = 1000)
+        self.LEDExposureSpin = QSpinBox(minimum = TRIGGER_MIN_TIME, maximum = TRIGGER_MAX_TIME)
         layout.addWidget(self.LEDExposureSpin)
         self.setButton = QPushButton('SET')
-        layout.addWidget(self.setButton)
+        #layout.addWidget(self.setButton)
 
 
         self.setLayout(layout)
@@ -477,8 +477,11 @@ class PrinterController:
         self._view.keyPressed.connect(partial(self.keyXY))
         self._view.scriptExecuteButton.clicked.connect(partial(self.runScriptFunc))
         self._view.triggerWindow.setButton.clicked.connect(partial(self.setTriggerFunc))
+        self._view.triggerWindow.LEDDelaySpin.valueChanged.connect(partial(self.setTriggerFunc))
+        self._view.triggerWindow.LEDExposureSpin.valueChanged.connect(partial(self.setTriggerFunc))
 
-    def setTriggerFunc(self):
+
+    def setTriggerFunc(self, value = 0):
         """Function call to configure the triggers/timing, based upon the SpinBoxes in triggerWindow
         """        
         delay = self._view.triggerWindow.LEDDelaySpin.value()

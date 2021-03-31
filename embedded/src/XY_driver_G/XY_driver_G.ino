@@ -88,11 +88,11 @@ void setup()
   // Show list off all commands
   // comm.printCommands();
 
-  pinMode(PIN_TRIGGER_LED, OUTPUT);
+  //pinMode(PIN_TRIGGER_LED, OUTPUT);
 
-  pinMode(PIN_TRIGGER_DROP, OUTPUT);
+  //pinMode(PIN_TRIGGER_DROP, OUTPUT);
 
-  DDRD |= ((1 << PIN_TRIGGER_LED) |(1 << PIN_TRIGGER_DROP));
+  DDRE |= ((1 << PIN_TRIGGER_LED) |(1 << PIN_TRIGGER_DROP));
 
   // initialize timer3 - based on code from http://www.letmakerobots.com/node/28278
 
@@ -119,7 +119,7 @@ ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined func
 
       TCNT3 = conf.LEDDelayTimerStart;
       //digitalWrite(PIN_TRIGGER_DROP, HIGH); //go high
-      PORTD |= (1 << PIN_TRIGGER_DROP);
+      PORTE |= (1 << PIN_TRIGGER_DROP);
       
       //comm.send("1");
       secondPulse = true;
@@ -134,7 +134,7 @@ ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined func
     {
       TCNT3 = conf.LEDPulseTimerStart;
       //digitalWrite(PIN_TRIGGER_B, HIGH); //go high
-      PORTD |= (1 << PIN_TRIGGER_LED);
+      PORTE |= (1 << PIN_TRIGGER_LED);
       //comm.send("3");
 
       triggerFlag = true;
@@ -144,7 +144,7 @@ ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined func
       TCNT3 = conf.LEDDelayTimerStart;
       //digitalWrite(PIN_TRIGGER_B, LOW); //go low
       //digitalWrite(PIN_TRIGGER_A, LOW);
-      PORTD &= ~((1 << PIN_TRIGGER_LED) |(1 << PIN_TRIGGER_DROP));
+      PORTE &= ~((1 << PIN_TRIGGER_LED) |(1 << PIN_TRIGGER_DROP));
       TIMSK3 = 0;                     //disable the interrupts so that this pulse is only seen once.
       //comm.send("4");
       secondPulse = false;

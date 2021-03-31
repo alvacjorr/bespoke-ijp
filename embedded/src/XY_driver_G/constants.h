@@ -31,8 +31,8 @@
 #define GCODE_TRIGGER_B "M20"
 
 
-#define PIN_TRIGGER_DROP 2 //note this is strongly tied to port registers!! BEWARE IF YOU CHANGE THIS
-#define PIN_TRIGGER_LED 3 //also they swap for some reason. port registers are weird.
+#define PIN_TRIGGER_DROP 0 //note this is strongly tied to port registers!! BEWARE IF YOU CHANGE THIS
+#define PIN_TRIGGER_LED 1 //also they swap for some reason. port registers are weird.
 
 //so the microfab is attached to D3?
 //and the LED to D2..
