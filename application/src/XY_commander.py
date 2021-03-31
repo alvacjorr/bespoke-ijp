@@ -134,7 +134,7 @@ class TriggerWindow(QWidget):
 
         layout.addWidget(QLabel('Second Strobe Delay/us'))
 
-        self.LEDSecondSpin = QSpinBox(minimum = TRIGGER_MIN_TIME, maximum = TRIGGER_MAX_TIME)
+        self.LEDSecondSpin = QSpinBox(minimum = TRIGGER_MIN_TIME+10, maximum = TRIGGER_MAX_TIME)
         layout.addWidget(self.LEDSecondSpin)
         self.setButton = QPushButton('SET')
         #layout.addWidget(self.setButton)
@@ -331,6 +331,7 @@ class PrinterUi(QMainWindow):
             self.GoToAngleSpinners[dim] = QDoubleSpinBox()
             self.GoToAngleSpinners[dim].setValue(0)
             self.GoToAngleSpinners[dim].setMaximum(RAIL_APPROX_LENGTH_DEGREES)
+            self.GoToAngleSpinners[dim].setMinimum(-RAIL_APPROX_LENGTH_DEGREES)
             self.GoToAngleSpinners[dim].setDecimals(3)
             GTALayout.addWidget(self.GoToAngleLabels[dim],0,dim)
             GTALayout.addWidget(self.GoToAngleSpinners[dim],1,dim)
@@ -352,6 +353,7 @@ class PrinterUi(QMainWindow):
             self.GoToMMSpinners[dim] = QDoubleSpinBox()
             self.GoToMMSpinners[dim].setValue(0)
             self.GoToMMSpinners[dim].setMaximum(RAIL_APPROX_LENGTH_MM)
+            self.GoToMMSpinners[dim].setMinimum(-RAIL_APPROX_LENGTH_MM)
             self.GoToMMSpinners[dim].setDecimals(3)
             Layout.addWidget(self.GoToMMLabels[dim],0,dim)
             Layout.addWidget(self.GoToMMSpinners[dim],1,dim)
