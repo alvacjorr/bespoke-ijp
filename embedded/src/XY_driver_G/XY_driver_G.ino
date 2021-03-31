@@ -14,6 +14,11 @@ GCode comm;
 float target = 0.0;
 bool targetReached = true;
 
+float anglePeriod = 1;
+
+
+float angleBase = 10;
+
 // Used to keep track of configuration
 struct
 {
@@ -247,6 +252,17 @@ void loop()
 
   if (stepper.driver.getVelocity() == 0)
     stepper.moveSteps(0); // Enter positioning mode again
+
+  float theta = stepper.angleMoved();
+  if(theta > angleBase ){
+    trigger();
+    angleBase += anglePeriod;
+  }
+
+  if(theta < angleBase-2*anglePeriod ){
+    trigger();
+    angleBase -= anglePeriod;
+  }
 
 
 }

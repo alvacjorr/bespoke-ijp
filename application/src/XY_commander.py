@@ -575,7 +575,7 @@ class PrinterController:
 
 
     def updatePositionIndicator(self):
-        """Update LCDs with mechanical data from uSteppers"""
+        """Update LCDs with mechanical data from uSteps"""
         #print("updating lcd")  
 
         
