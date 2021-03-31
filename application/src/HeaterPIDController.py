@@ -116,7 +116,7 @@ class PID_Layout(QWidget):
         layout.addWidget(self.graph)
         layout.addWidget(self.setter)
         self.createShowButton()
-
+        self.setWindowFlags(Qt.Tool)
         self.setMaximumHeight(0)
 
 
@@ -229,7 +229,7 @@ class PIDGraphWindow(QWidget):
         #self.sc.axes.set_xlabel('time')
         #self.sc.axes.set_ylabel('temperature')
         #self.sc.axes2.set_ylabel('voltage')
-
+        
         self.show()
 
 

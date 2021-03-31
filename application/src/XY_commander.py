@@ -141,6 +141,7 @@ class TriggerWindow(QWidget):
 
 
         self.setLayout(layout)
+        self.setWindowFlags(Qt.Tool)
         self.createShowButton()
         #self.core = TriggerWindow(label = label)
 
