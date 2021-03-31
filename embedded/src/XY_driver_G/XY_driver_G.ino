@@ -2,6 +2,7 @@
 #include "gcode.h"
 #include "constants.h"
 
+
 #define UARTPORT Serial
 #define DEBUGPORT Serial1
 
@@ -88,9 +89,6 @@ void setup()
   // Show list off all commands
   // comm.printCommands();
 
-  //pinMode(PIN_TRIGGER_LED, OUTPUT);
-
-  //pinMode(PIN_TRIGGER_DROP, OUTPUT);
 
   DDRE |= ((1 << PIN_TRIGGER_LED) |(1 << PIN_TRIGGER_DROP));
 
@@ -107,8 +105,34 @@ void setup()
   TIMSK3 |= 0;             //disable ovf interrupt
   //TIMSK3 |= (1 << TOIE3);   // enable timer overflow interrupt
 
+
+//COnfigure Pin Change Interrupts on Digital Pin 2
+
+  pinMode(2, INPUT_PULLUP); //Make Pin 2 an imput
+
+
+
+  PCMSK2 |= (1<<3); //activate PCINT19 aka PD3 aka Pin 2 on the Pin Change Mask 2
+
+  PCICR |= (1<<PCIE2); //Enable PCINT2 interrupts
+
+  //attachInterrupt(digitalPinToInterrupt(2),trigger,FALLING);
+
   interrupts(); // enable all interrupts
 }
+
+
+
+
+//ISR routine for pin 2.
+ISR(PCINT2_vect){  
+  bool edge = digitalRead(2);
+  //Serial.println(edge);
+  if(edge){ //check if it was a rising edge
+    trigger();} //if it was, trigger the drop
+  EIFR &= ~(1 << INTF0); //Clear interrupt flag
+}
+
 
 //ISR for the trigger
 
