@@ -113,6 +113,47 @@ class GraphWindow(QWidget):
 
 
 
+class TriggerWindow(QWidget):
+    def __init__(self, label = "untitled"):
+        super().__init__()
+        layout = QVBoxLayout()
+        #self.windowTitle = label
+        self.setWindowTitle('Trig. Config')
+        self.label = label
+
+        layout.addWidget(QLabel('LED Delay/us'))
+
+        
+        self.LEDDelaySpin = QSpinBox(minimum = 10, maximum = 1000)
+        layout.addWidget(self.LEDDelaySpin)
+        
+        layout.addWidget(QLabel('LED Exposure/us'))
+
+        self.LEDExposureSpin = QSpinBox(minimum = 10, maximum = 1000)
+        layout.addWidget(self.LEDExposureSpin)
+        self.setButton = QPushButton('SET')
+        layout.addWidget(self.setButton)
+
+
+        self.setLayout(layout)
+        self.createShowButton()
+        #self.core = TriggerWindow(label = label)
+
+
+    def toggle(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
+
+
+    def createShowButton(self):
+        showLabel = 'Trig. Config'
+        self.showButton = QPushButton(showLabel)
+        self.showButton.clicked.connect(partial(self.toggle))
+
+
+
 
 class PrinterUi(QMainWindow):
     """Main UI
@@ -147,12 +188,22 @@ class PrinterUi(QMainWindow):
         self.createGoToMMBox(self.inputLayout)
         self.createPositionIndicator(self.monitorLayout)
         self.createHeaterIndicator(self.monitorLayout)
+
+        self.createTriggerWindow()
         
         self.createToolBox(self.goToLayout)
         self.createScriptEditor(self.goToLayout)
 
+
+
+
+
         self.generalLayout.addLayout(self.miLayout)
         self.generalLayout.addLayout(self.goToLayout)
+
+    def createTriggerWindow(self):
+        self.triggerWindow = TriggerWindow()
+
 
         
     def keyPressEvent(self,event):
@@ -319,7 +370,10 @@ class PrinterUi(QMainWindow):
         ToolLayout.addWidget(self.stopButton,0,1)
         ToolLayout.addWidget(self.psuOnButton,0,2)
         ToolLayout.addWidget(self.psuOffButton,0,3)
+        ToolLayout.addWidget(self.triggerWindow.showButton,0,4)
         
+        
+
         ToolBox = QGroupBox("Tools")
         ToolBox.setLayout(ToolLayout)
         l.addWidget(ToolBox)
@@ -374,6 +428,8 @@ class PrinterController:
         #self.bed_controller.show_graphs()
         self._view.generalLayout.addWidget(self.nozzle_controller._ui.showButton)
 
+        
+
 
 
         
@@ -420,6 +476,15 @@ class PrinterController:
         self._view.GoToMMButton.clicked.connect(partial(self.goToMMFunc))
         self._view.keyPressed.connect(partial(self.keyXY))
         self._view.scriptExecuteButton.clicked.connect(partial(self.runScriptFunc))
+        self._view.triggerWindow.setButton.clicked.connect(partial(self.setTriggerFunc))
+
+    def setTriggerFunc(self):
+        """Function call to configure the triggers/timing, based upon the SpinBoxes in triggerWindow
+        """        
+        delay = self._view.triggerWindow.LEDDelaySpin.value()
+        exposure = self._view.triggerWindow.LEDExposureSpin.value()
+
+        self._xy.setDurations(TRIGGER_AXIS, delay, exposure)
 
     def goToFunc(self):
         for i in (0,1):
