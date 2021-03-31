@@ -106,7 +106,14 @@ void setup()
   //TIMSK3 |= (1 << TOIE3);   // enable timer overflow interrupt
 
 
-//COnfigure Pin Change Interrupts on Digital Pin 2
+//Configure Pin Change Interrupts on Digital Pin 2
+//We don't use EXINTs or attachInterrupt because they interact weirdly with the uStepper board.
+//The pin layout here is confusing
+//On the PCB, the pin used is Pin 2.
+//In AVR-land this is PD3 (third bit on Port D).
+//In ISR land, this is PCINT19 - the 19th pin to support PCINT, living on the 2nd bank of PCINTs
+
+
 
   pinMode(2, INPUT_PULLUP); //Make Pin 2 an imput
 
@@ -114,7 +121,7 @@ void setup()
 
   PCMSK2 |= (1<<3); //activate PCINT19 aka PD3 aka Pin 2 on the Pin Change Mask 2
 
-  PCICR |= (1<<PCIE2); //Enable PCINT2 interrupts
+  PCICR |= (1<<PCIE2); //Enable PCINT interrupts on bank 2
 
   //attachInterrupt(digitalPinToInterrupt(2),trigger,FALLING);
 
