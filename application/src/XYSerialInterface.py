@@ -217,8 +217,8 @@ class XYSerialInterface:
             msg = self.GTriggerB()
         self.command(axis,msg)
 
-    def setDurations(self,axis,delay,led):
-        msg = self.GSetDurations(delay,led)
+    def setDurations(self,axis,delay,led,second):
+        msg = self.GSetDurations(delay,led,second)
         self.command(axis,msg)
 
         
@@ -229,8 +229,8 @@ class XYSerialInterface:
         return datastring.encode('utf-8')
 
 
-    def GSetDurations(self,delay,led): #duration should be in us
-        datastring = 'M18 D' + str(delay) + ' L' + str(led)  + ' \n'
+    def GSetDurations(self,delay,led,second): #duration should be in us
+        datastring = 'M18 D' + str(delay) + ' L' + str(led)  + ' S' + str(second)  + ' \n'
         return datastring.encode('utf-8')
 
     def parseData(self, data):

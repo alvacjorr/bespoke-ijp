@@ -131,6 +131,11 @@ class TriggerWindow(QWidget):
 
         self.LEDExposureSpin = QSpinBox(minimum = TRIGGER_MIN_TIME, maximum = TRIGGER_MAX_TIME)
         layout.addWidget(self.LEDExposureSpin)
+
+        layout.addWidget(QLabel('Second Strobe Delay/us'))
+
+        self.LEDSecondSpin = QSpinBox(minimum = TRIGGER_MIN_TIME, maximum = TRIGGER_MAX_TIME)
+        layout.addWidget(self.LEDSecondSpin)
         self.setButton = QPushButton('SET')
         #layout.addWidget(self.setButton)
 
@@ -479,6 +484,7 @@ class PrinterController:
         self._view.triggerWindow.setButton.clicked.connect(partial(self.setTriggerFunc))
         self._view.triggerWindow.LEDDelaySpin.valueChanged.connect(partial(self.setTriggerFunc))
         self._view.triggerWindow.LEDExposureSpin.valueChanged.connect(partial(self.setTriggerFunc))
+        self._view.triggerWindow.LEDSecondSpin.valueChanged.connect(partial(self.setTriggerFunc))
 
 
     def setTriggerFunc(self, value = 0):
@@ -486,8 +492,10 @@ class PrinterController:
         """        
         delay = self._view.triggerWindow.LEDDelaySpin.value()
         exposure = self._view.triggerWindow.LEDExposureSpin.value()
+        second = self._view.triggerWindow.LEDSecondSpin.value()
 
-        self._xy.setDurations(TRIGGER_AXIS, delay, exposure)
+        self._view.triggerWindow.LEDSecondSpin.setMinimum(exposure+10)
+        self._xy.setDurations(TRIGGER_AXIS, delay, exposure,second)
 
     def goToFunc(self):
         for i in (0,1):

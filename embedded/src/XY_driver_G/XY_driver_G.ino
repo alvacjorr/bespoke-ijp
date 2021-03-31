@@ -26,23 +26,34 @@ struct
   bool homeDirection = CW; // In rpm
   uint32_t LEDPulseLengthMicros = 20;
   uint32_t LEDDelayMicros = 40;
+  uint32_t LEDSecondMicros = 40;
+  
   
   int LEDDelayTimerStart = 65064; //value the timer stats at to count up to 65536. 
   int LEDPulseTimerStart = 65264; //value the timer stats at to count up to 65536. this value is abous 20us
+  int LEDSecondTimerStart = 65264; // same but for the second pulse
 } conf;
 
 //timer toggle stuff
 
-bool triggerFlag = 0;
 
 
-bool secondPulse = 0;
+int triggerSeq = 0;
+
+int maxTriggerSeq = 4;
 
 void setup()
 {
 
+  //set up the trigger out ports as outputs, low.
+
+
+
+  //start the serial interface
+
   UARTPORT.begin(115200);
-  // DEBUGPORT.begin(115200);
+
+  //configure the stepper motor
 
   stepper.setup(CLOSEDLOOP, 200);
   stepper.disableClosedLoop();
@@ -90,7 +101,7 @@ void setup()
   // comm.printCommands();
 
 
-  DDRE |= ((1 << PIN_TRIGGER_LED) |(1 << PIN_TRIGGER_DROP));
+  
 
   // initialize timer3 - based on code from http://www.letmakerobots.com/node/28278
 
@@ -115,7 +126,7 @@ void setup()
 
 
 
-  pinMode(2, INPUT_PULLUP); //Make Pin 2 an imput
+  pinMode(2, INPUT_PULLUP); //Make Pin 2 an input
 
 
 
@@ -124,6 +135,10 @@ void setup()
   PCICR |= (1<<PCIE2); //Enable PCINT interrupts on bank 2
 
   //attachInterrupt(digitalPinToInterrupt(2),trigger,FALLING);
+
+  DDRE |= ((1 << PIN_TRIGGER_LED) | (1 << PIN_TRIGGER_DROP));
+  PORTE &= ~(1 << PIN_TRIGGER_DROP);
+  PORTE &= ~(1 << PIN_TRIGGER_LED);
 
   interrupts(); // enable all interrupts
 }
@@ -145,44 +160,67 @@ ISR(PCINT2_vect){
 
 ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined function supplied by attachInterrupt
 {
-  if (!secondPulse)
-  {
-
+  switch(triggerSeq){
+    case 0:
       TCNT3 = conf.LEDDelayTimerStart;
       //digitalWrite(PIN_TRIGGER_DROP, HIGH); //go high
       PORTE |= (1 << PIN_TRIGGER_DROP);
       
-      //comm.send("1");
-      secondPulse = true;
-      
 
+      break;
 
-    
-  }
-  else
-  {
-    if (!triggerFlag)
-    {
+    case 1:
       TCNT3 = conf.LEDPulseTimerStart;
       //digitalWrite(PIN_TRIGGER_B, HIGH); //go high
       PORTE |= (1 << PIN_TRIGGER_LED);
+      PORTE &= ~(1 << PIN_TRIGGER_DROP);
       //comm.send("3");
 
-      triggerFlag = true;
-    }
-    else
-    {
-      TCNT3 = conf.LEDDelayTimerStart;
-      //digitalWrite(PIN_TRIGGER_B, LOW); //go low
-      //digitalWrite(PIN_TRIGGER_A, LOW);
-      PORTE &= ~((1 << PIN_TRIGGER_LED) |(1 << PIN_TRIGGER_DROP));
-      TIMSK3 = 0;                     //disable the interrupts so that this pulse is only seen once.
-      //comm.send("4");
-      secondPulse = false;
-      triggerFlag = false;
 
-    }
+      break;
+
+    case 2:
+
+      TCNT3 = conf.LEDSecondTimerStart;
+
+
+      PORTE &= ~(1 << PIN_TRIGGER_LED);
+
+      break;
+
+    case 3:
+      TCNT3 = conf.LEDPulseTimerStart;
+      //digitalWrite(PIN_TRIGGER_B, HIGH); //go high
+      PORTE |= (1 << PIN_TRIGGER_LED);
+      //PORTE &= ~(1 << PIN_TRIGGER_DROP);
+      //comm.send("3");
+
+
+      break;
+
+    case 4:
+
+      TCNT3 = conf.LEDDelayTimerStart;
+
+
+      PORTE &= ~(1 << PIN_TRIGGER_LED);
+      TIMSK3 = 0;                     //disable the interrupts so that this pulse is only seen once.
+
+      break;
+
+  
+
   }
+
+  if(triggerSeq==maxTriggerSeq){
+    triggerSeq = 0;
+  }
+  else{
+    triggerSeq++;
+  }
+
+
+  
   
 }
 
@@ -432,19 +470,24 @@ void uart_configureTrigger(char *cmd, char *data)
 
   int32_t LEDPulseLengthMicros = conf.LEDPulseLengthMicros;
   int32_t LEDDelayMicros = conf.LEDDelayMicros;
+  int32_t LEDSecondMicros = conf.LEDSecondMicros;  
   int32_t LEDPulseTimerStart = conf.LEDPulseTimerStart;
   int32_t LEDDelayTimerStart = conf.LEDDelayTimerStart;
+
+  int32_t LEDSecondTimerStart = conf.LEDSecondTimerStart;
   
 
 
   comm.value("L", &LEDPulseLengthMicros);
   comm.value("D", &LEDDelayMicros);
+  comm.value("S", &LEDSecondMicros);
 
   conf.LEDPulseLengthMicros = LEDPulseLengthMicros;
   conf.LEDDelayMicros = LEDDelayMicros;
   
   conf.LEDPulseTimerStart = 65536 - (16 * (LEDPulseLengthMicros - TIMER_DELAY_COMPENSATION)); //derive value of OCR3A from the A Pulse Length. NB the -3 is just a fudge. minimum value of 12us currently!! max is about 4ms.
   conf.LEDDelayTimerStart = 65536 - (16 * (LEDDelayMicros - TIMER_DELAY_COMPENSATION));
+  conf.LEDSecondTimerStart = 65536 - (16 * ((LEDSecondMicros - LEDPulseLengthMicros) - TIMER_DELAY_COMPENSATION));
 
   comm.send("OK");
 }
