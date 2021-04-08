@@ -17,6 +17,11 @@ def main():
     configure_and_commit()
 
 def configure():
+    """Promts the user to plug in the X and Y axes, then records and returns their serial numbers
+
+    :return: List of serial numbers, with X in 0 position and Y in 1 position
+    :rtype: List of Strings
+    """   
     input('Please unplug the X and Y axes. Then press Enter to continue')
     comlist = serial.tools.list_ports.comports()
     input('Please plug in the X axis. Then press Enter to continue')
@@ -27,7 +32,7 @@ def configure():
     comlist_y = serial.tools.list_ports.comports()
     y_serial = compare(comlist_x,comlist_y)
     print('y: ' + y_serial)
-    return[x_serial,y_serial]
+    return [x_serial,y_serial]
 
 def configure_and_commit():
     cfg = configure()
@@ -35,6 +40,11 @@ def configure_and_commit():
 
 
 def commit(c):
+    """[summary]
+
+    :param c: [description]
+    :type c: [type]
+    """    
     if os.path.isfile(filename):
         i = input('Found an existing configuration. Clear it? y/n')
         if i == 'y':
@@ -45,7 +55,7 @@ def commit(c):
         print('No config found. Making one.')
         f = open(filename, "w")
 
-    content = """
+    content = """ 
 STAGE_X_SERIAL_NUMBER = '""" + c[0] + """'
 STAGE_Y_SERIAL_NUMBER = '""" + c[1]+ "'"
 
@@ -58,6 +68,15 @@ STAGE_Y_SERIAL_NUMBER = '""" + c[1]+ "'"
 
 
 def compare(l1,l3):
+    """Compares two lists of serial ports and returns the serial number of the first difference between them
+
+    :param l1: List of serial ports
+    :type l1: List
+    :param l3: List of serial ports
+    :type l3: List
+    :return: Serial number of the first port present in l3 but not in l1 (or vice versa)
+    :rtype: String
+    """    
     res = [x for x in l1 + l3 if x not in l1 or x not in l3]
     return res[0].serial_number
         
