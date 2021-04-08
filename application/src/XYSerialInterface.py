@@ -2,6 +2,18 @@ import serial
 from constants import *
 from EndstopBox import EndstopBox
 import re
+
+import port_finder
+
+try:
+    from ports_serial import *
+except:
+    print('No port configuration found! Running Port Configuration Utility...')
+    port_finder.configure_and_commit()
+
+from ports_serial import *
+
+
 class XYSerialInterface:
     def __init__(self): #two serial interfaces, one with X and one with Y uStepper
         """Create the interface"""
