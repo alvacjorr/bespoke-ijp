@@ -38,7 +38,7 @@ struct
 
   float progAngleOffset = 0;
   float progAnglePeriod = 10;
-  bool progressiveModeEnabled = true;
+  bool progressiveModeEnabled = false;
 } conf;
 
 //timer toggle stuff
@@ -89,8 +89,8 @@ void setup()
   comm.addCommand(GCODE_REQUEST_CONFIG, &uart_sendConfig);
   comm.addCommand(GCODE_REQUEST_TEMP, &uart_sendTemp);
 
-  comm.addCommand(GCODE_TRIGGER_A, &uart_trigger);
-  comm.addCommand(GCODE_TRIGGER_B, &uart_trigger);
+  comm.addCommand(GCODE_TRIGGER, &uart_trigger);
+  comm.addCommand(GCODE_TRIGGER_ALT, &uart_trigger);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_TIMING, &uart_configureTriggerTiming);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_PROGRESSIVE, &uart_configureTriggerProgressive);
 
@@ -241,13 +241,13 @@ void handleProgressiveTrigger()
   {
     float theta = stepper.angleMoved();
 
-    if (theta > conf.progAngleOffset)
+    if (theta > conf.progAngleOffset + conf.progAnglePeriod)
     {
       trigger();
       conf.progAngleOffset += conf.progAnglePeriod;
     }
 
-    if (theta < conf.progAngleOffset - 2 * conf.progAnglePeriod)
+    if (theta < conf.progAngleOffset - conf.progAnglePeriod)
     {
       trigger();
       conf.progAngleOffset -= conf.progAnglePeriod;
@@ -507,6 +507,8 @@ void uart_configureTriggerProgressive(char *cmd, char *data)
   comm.value("B", &progAngleOffset);
   comm.value("P", &progAnglePeriod);
   comm.value("T", &progressiveModeEnabled);
+
+  progAngleOffset = stepper.angleMoved();
 
   conf.progAngleOffset = progAngleOffset;
   conf.progAnglePeriod = progAnglePeriod;

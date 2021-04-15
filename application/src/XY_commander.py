@@ -513,6 +513,8 @@ class PrinterController:
         self._view.GoToMMButton.clicked.connect(partial(self.goToMMFunc))
         self._view.keyPressed.connect(partial(self.keyXY))
         self._view.scriptExecuteButton.clicked.connect(partial(self.runScriptFunc))
+
+        # Trigger Timing Config
         self._view.triggerWindow.setButton.clicked.connect(partial(self.setTriggerFunc))
         self._view.triggerWindow.LEDDelaySpin.valueChanged.connect(
             partial(self.setTriggerFunc)

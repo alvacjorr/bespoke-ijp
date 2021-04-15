@@ -27,8 +27,8 @@
 //IJP-specific codes
 #define GCODE_REQUEST_TEMP "M17"
 #define GCODE_CONFIGURE_TRIGGER_TIMING "M18"
-#define GCODE_TRIGGER_A "M19"
-#define GCODE_TRIGGER_B "M20"
+#define GCODE_TRIGGER "M19"
+#define GCODE_TRIGGER_ALT "M20"
 #define GCODE_CONFIGURE_TRIGGER_PROGRESSIVE "M21"
 
 #define PIN_TRIGGER_DROP 0 //note this is strongly tied to port registers!! BEWARE IF YOU CHANGE THIS.  E0 (D8)
