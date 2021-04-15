@@ -31,12 +31,20 @@
 #define GCODE_TRIGGER_B "M20"
 
 
-#define PIN_TRIGGER_DROP 0 //note this is strongly tied to port registers!! BEWARE IF YOU CHANGE THIS
-#define PIN_TRIGGER_LED 1 //also they swap for some reason. port registers are weird.
+#define PIN_TRIGGER_DROP 0 //note this is strongly tied to port registers!! BEWARE IF YOU CHANGE THIS.  E0 (D8)
+#define PORT_TRIGGER_DROP PORTE
+#define DDR_TRIGGER_DROP DDRE
+#define PIN_TRIGGER_LED 1 //also they swap for some reason. port registers are weird. E1 (D7)
+#define PORT_TRIGGER_LED PORTE
+#define DDR_TRIGGER_LED DDRE
+#define PIN_TRIGGER_SHUTTER 5 //Pin for the shutter control. B5 (D6)
+#define PORT_TRIGGER_SHUTTER PORTB
+#define DDR_TRIGGER_SHUTTER DDRB
 
-//so the microfab is attached to D3?
-//and the LED to D2..
-//whyyyyyyyyyyyyyyyyy
+
+
+
+
 
 #define PIN_TEMP_BED A0
 #define PIN_TEMP_NOZZLE A1

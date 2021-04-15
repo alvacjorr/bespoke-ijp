@@ -141,9 +141,11 @@ void setup()
 
   //attachInterrupt(digitalPinToInterrupt(2),trigger,FALLING);
 
-  DDRE |= ((1 << PIN_TRIGGER_LED) | (1 << PIN_TRIGGER_DROP));
-  PORTE &= ~(1 << PIN_TRIGGER_DROP);
-  PORTE &= ~(1 << PIN_TRIGGER_LED);
+  DDR_TRIGGER_LED |= (1 << PIN_TRIGGER_LED) ;
+  DDR_TRIGGER_DROP |= (1 << PIN_TRIGGER_DROP);
+  DDR_TRIGGER_SHUTTER |= (1 << PIN_TRIGGER_SHUTTER);
+  PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
+  PORT_TRIGGER_LED &= ~(1 << PIN_TRIGGER_LED);
 
   interrupts(); // enable all interrupts
 }
@@ -163,13 +165,13 @@ ISR(PCINT2_vect){
 
 //ISR for the trigger
 
-ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined function supplied by attachInterrupt
+ISR(TIMER3_OVF_vect) 
 {
   switch(triggerSeq){
     case 0:
       TCNT3 = conf.LEDDelayTimerStart;
       //digitalWrite(PIN_TRIGGER_DROP, HIGH); //go high
-      PORTE |= (1 << PIN_TRIGGER_DROP);
+      PORT_TRIGGER_DROP |= (1 << PIN_TRIGGER_DROP);
       
 
       break;
@@ -177,8 +179,9 @@ ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined func
     case 1:
       TCNT3 = conf.LEDPulseTimerStart;
       //digitalWrite(PIN_TRIGGER_B, HIGH); //go high
-      PORTE |= (1 << PIN_TRIGGER_LED);
-      PORTE &= ~(1 << PIN_TRIGGER_DROP);
+      PORT_TRIGGER_LED |= (1 << PIN_TRIGGER_LED);
+      PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
+      PORT_TRIGGER_SHUTTER |= (1 << PIN_TRIGGER_SHUTTER);
       //comm.send("3");
 
 
@@ -189,16 +192,15 @@ ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined func
       TCNT3 = conf.LEDSecondTimerStart;
 
 
-      PORTE &= ~(1 << PIN_TRIGGER_LED);
+      PORT_TRIGGER_LED &= ~(1 << PIN_TRIGGER_LED);
 
       break;
 
     case 3:
       TCNT3 = conf.LEDPulseTimerStart;
       //digitalWrite(PIN_TRIGGER_B, HIGH); //go high
-      PORTE |= (1 << PIN_TRIGGER_LED);
-      //PORTE &= ~(1 << PIN_TRIGGER_DROP);
-      //comm.send("3");
+      PORT_TRIGGER_LED |= (1 << PIN_TRIGGER_LED);
+
 
 
       break;
@@ -209,6 +211,7 @@ ISR(TIMER3_OVF_vect) // interrupt service routine that wraps a user defined func
 
 
       PORTE &= ~(1 << PIN_TRIGGER_LED);
+      PORT_TRIGGER_SHUTTER &= ~(1 << PIN_TRIGGER_SHUTTER);
       TIMSK3 = 0;                     //disable the interrupts so that this pulse is only seen once.
 
       break;
