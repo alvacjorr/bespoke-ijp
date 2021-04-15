@@ -1,6 +1,8 @@
 Known Issues
 ============
 
+See also https://github.com/thekeeno/bespoke-ijp/issues
+
 Mechanical Vibrations
 *********************
 
@@ -25,7 +27,4 @@ Backlash
 
 The system definitely has some backlash. The exact amount is yet to be quantified however!
 
-Allocation of X and Y axes
-**************************
 
-At the moment, getting the serial numbers is manual. At some point, this will be made automatic.
