@@ -229,3 +229,8 @@ out/
 *.stamp
 
 .cquery_cached_index
+
+
+# SolidWorks Temp Files
+
+~$*.SLDPRT
