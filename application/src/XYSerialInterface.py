@@ -229,6 +229,11 @@ class XYSerialInterface:
         msg = self.GSetDurations(delay, led, second, tog)
         self.command(axis, msg)
 
+    def configureTriggerProgressive(self, axis, tog, angle):
+        msg = self.GConfigureTriggerProgressive(tog, angle)
+        print(msg)
+        self.command(axis, msg)
+
     def GTriggerA(self):
         datastring = "M19 \n"
         return datastring.encode("utf-8")
@@ -246,6 +251,11 @@ class XYSerialInterface:
             + str(tog)
             + " \n"
         )
+        return datastring.encode("utf-8")
+
+    def GConfigureTriggerProgressive(self, tog, angle):
+        tog = int(tog == True)
+        datastring = "M21 T" + str(tog) + " P" + str(angle) + " \n"
         return datastring.encode("utf-8")
 
     def parseData(self, data):

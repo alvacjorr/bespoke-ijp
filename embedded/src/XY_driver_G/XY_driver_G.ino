@@ -13,6 +13,9 @@ GCode comm;
 float target = 0.0;
 bool targetReached = true;
 
+int triggerSeq = 0;
+int maxTriggerSeq = 4;
+
 // Used to keep track of configuration
 struct
 {
@@ -31,18 +34,14 @@ struct
   int LEDPulseTimerStart = 65264;  //value the timer stats at to count up to 65536. this value is abous 20us
   int LEDSecondTimerStart = 65264; // same but for the second pulse
 
-  bool secondPulseEnable = false;
+  bool secondPulseEnabled = false;
 
-  uint32_t progAngleOffset = 10;
-  uint32_t progAnglePeriod = 1;
-  uint32_t progEnabled = 0;
+  float progAngleOffset = 0;
+  float progAnglePeriod = 10;
+  bool progressiveModeEnabled = true;
 } conf;
 
 //timer toggle stuff
-
-int triggerSeq = 0;
-
-int maxTriggerSeq = 4;
 
 void setup()
 {
@@ -93,7 +92,7 @@ void setup()
   comm.addCommand(GCODE_TRIGGER_A, &uart_trigger);
   comm.addCommand(GCODE_TRIGGER_B, &uart_trigger);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_TIMING, &uart_configureTriggerTiming);
-  //comm.addCommand(GCODE_CONFIGURE_TRIGGER_PROGRESSIVE, &uart_configureTriggerProgressive)
+  comm.addCommand(GCODE_CONFIGURE_TRIGGER_PROGRESSIVE, &uart_configureTriggerProgressive);
 
   // Called if the packet and checksum is ok, but the command is unsupported
   comm.addCommand(NULL, uart_default);
@@ -183,7 +182,7 @@ ISR(TIMER3_OVF_vect)
 
   case 3:
     TCNT3 = conf.LEDPulseTimerStart;
-    if (conf.secondPulseEnable)
+    if (conf.secondPulseEnabled)
     {
       PORT_TRIGGER_LED |= (1 << PIN_TRIGGER_LED);
     }
@@ -238,10 +237,10 @@ void loop()
 
 void handleProgressiveTrigger()
 {
-  if (conf.progEnabled)
+  if (conf.progressiveModeEnabled)
   {
-
     float theta = stepper.angleMoved();
+
     if (theta > conf.progAngleOffset)
     {
       trigger();
@@ -480,22 +479,40 @@ void uart_configureTriggerTiming(char *cmd, char *data)
 
   int32_t LEDSecondTimerStart = conf.LEDSecondTimerStart;
 
-  int32_t secondPulseEnable = conf.secondPulseEnable;
+  int32_t secondPulseEnabled = conf.secondPulseEnabled;
 
   comm.value("L", &LEDPulseLengthMicros);
   comm.value("D", &LEDDelayMicros);
   comm.value("S", &LEDSecondMicros);
-  comm.value("T", &secondPulseEnable);
+  comm.value("T", &secondPulseEnabled);
 
   conf.LEDPulseLengthMicros = LEDPulseLengthMicros;
   conf.LEDDelayMicros = LEDDelayMicros;
-  conf.secondPulseEnable = secondPulseEnable;
+  conf.secondPulseEnabled = secondPulseEnabled;
 
   conf.LEDPulseTimerStart = 65536 - (16 * (LEDPulseLengthMicros - TIMER_DELAY_COMPENSATION)); //derive value of OCR3A from the A Pulse Length. NB the -3 is just a fudge. minimum value of 12us currently!! max is about 4ms.
   conf.LEDDelayTimerStart = 65536 - (16 * (LEDDelayMicros - TIMER_DELAY_COMPENSATION));
   conf.LEDSecondTimerStart = 65536 - (16 * ((LEDSecondMicros - LEDPulseLengthMicros) - TIMER_DELAY_COMPENSATION));
 
   comm.send("OK");
+}
+
+void uart_configureTriggerProgressive(char *cmd, char *data)
+{
+
+  float progAngleOffset = conf.progAngleOffset;
+  float progAnglePeriod = conf.progAnglePeriod;
+  int32_t progressiveModeEnabled = conf.progressiveModeEnabled;
+
+  comm.value("B", &progAngleOffset);
+  comm.value("P", &progAnglePeriod);
+  comm.value("T", &progressiveModeEnabled);
+
+  conf.progAngleOffset = progAngleOffset;
+  conf.progAnglePeriod = progAnglePeriod;
+  conf.progressiveModeEnabled = progressiveModeEnabled;
+
+  comm.send("Progressive Mode Configured OK");
 }
 
 /** Implemented on the WiFi shield */
