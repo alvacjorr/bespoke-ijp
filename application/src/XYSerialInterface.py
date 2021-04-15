@@ -231,7 +231,6 @@ class XYSerialInterface:
 
     def configureTriggerProgressive(self, axis, tog, angle):
         msg = self.GConfigureTriggerProgressive(tog, angle)
-        print(msg)
         self.command(axis, msg)
 
     def GTriggerA(self):
