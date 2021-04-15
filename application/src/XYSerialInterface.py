@@ -30,25 +30,29 @@ class XYSerialInterface:
     def allocatePorts(self): 
         """Allocate and connect to X and Y ports.
         """
+        flag = 1
+
+        while(flag):
 
 
-        print("connecting to steppers")
-        for comport in serial.tools.list_ports.comports():
-            if comport.serial_number == STAGE_X_SERIAL_NUMBER:
-                self.portX = serial.Serial(comport.name, 115200, timeout=1)
-            elif comport.serial_number == STAGE_Y_SERIAL_NUMBER:
-                self.portY = serial.Serial(comport.name, 115200, timeout=1)
+            print("connecting to steppers")
+            try:
+                for comport in serial.tools.list_ports.comports():
+                    if comport.serial_number == STAGE_X_SERIAL_NUMBER:
+                        self.portX = serial.Serial(comport.name, 115200, timeout=1)
+                    elif comport.serial_number == STAGE_Y_SERIAL_NUMBER:
+                        self.portY = serial.Serial(comport.name, 115200, timeout=1)
 
-        try:
-            self.portX
-            self.portY
-        except NameError: 
-            print('error')      
-   # Do something.
+            
+                self.portX
+                self.portY
+                flag = 0
+            except: 
+                flag = 1
+                i = input('Unable to connect to steppers. Would you like to retry (r) or reconfigure (c)?') 
+                if i=='c':
+                    port_finder.configure_and_commit() 
 
-        #self.portX = serial.Serial(a, 115200, timeout=1)
-        #self.portX.write(b'G4 V100 T2 D0\n')
-        #self.portY = serial.Serial(b, 115200, timeout=1)
 
     def initialisePosition(self):
         self.currentPosition = {}
