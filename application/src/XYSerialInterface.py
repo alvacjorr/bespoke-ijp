@@ -48,10 +48,12 @@ class XYSerialInterface:
             except:
                 flag = 1
                 i = input(
-                    "Unable to connect to steppers. Would you like to retry (r) or reconfigure (c)?"
+                    "Unable to connect to steppers. Would you like to retry (r), ignore(i) or reconfigure (c)?"
                 )
                 if i == "c":
                     port_finder.configure_and_commit()
+                if i == "i":
+                    flag = 0
 
     def initialisePosition(self):
         self.currentPosition = {}

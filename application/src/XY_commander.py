@@ -684,7 +684,7 @@ class psuController:
             self.power = psu_serial.GPD_4303S(port)
             self.isConnected = True
         except:
-            self.power = psu_serial.GPD_DUMMY
+            self.power = psu_serial.PSU_DUMMY(port)
             self.isConnected = False
             print("PSU not found - using dummy instead.")
         self.power.turn_on()
