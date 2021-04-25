@@ -221,10 +221,8 @@ class XYSerialInterface:
         return parsed
 
     def trigger(self, axis, trigger):
-        if trigger == "A":
-            msg = self.GTriggerA()
-        elif trigger == "B":
-            msg = self.GTriggerB()
+        #if trigger == "A":
+        msg = self.GTriggerA()
         self.command(axis, msg)
 
     def setDurations(self, axis, delay, led, second, tog):
