@@ -33,6 +33,7 @@
 #define GCODE_TRIGGER_A "M19"
 #define GCODE_TRIGGER_B "M20" //deprecated
 #define GCODE_CONFIGURE_TRIGGER_PROGRESSIVE "M21"
+#define GCODE_CONFIGURE_TRIGGER_CONTINUOUS "M22"
 
 //Port registers for the various output pins.
 //Consult uStepper datasheet and circuit diagram before changing these

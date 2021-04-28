@@ -233,6 +233,10 @@ class XYSerialInterface:
         msg = self.GConfigureTriggerProgressive(tog, angle)
         self.command(axis, msg)
 
+    def configureTriggerContinuous(self, axis, freq, tog):
+        msg = self.GConfigureTriggerContinuous(freq, tog)
+        self.command(axis, msg)
+
     def GTriggerA(self):
         datastring = "M19 \n"
         return datastring.encode("utf-8")
@@ -257,6 +261,11 @@ class XYSerialInterface:
     def GConfigureTriggerProgressive(self, tog, angle):
         tog = int(tog == True)
         datastring = "M21 T" + str(tog) + " P" + str(angle) + " \n"
+        return datastring.encode("utf-8")
+
+    def GConfigureTriggerContinuous(self, freq, tog):
+        tog = int(tog == True)
+        datastring = "M22 T" + str(tog) + " F" + str(freq) + " \n"
         return datastring.encode("utf-8")
 
     def parseData(self, data):

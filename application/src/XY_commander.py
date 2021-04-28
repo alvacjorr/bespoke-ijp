@@ -136,6 +136,7 @@ class TriggerWindow(QWidget):
 
         layout.addWidget(self.createTimingBox())
         layout.addWidget(self.createProgressiveBox())
+        layout.addWidget(self.createContinuousBox())
 
         self.setLayout(layout)
         self.setWindowFlags(Qt.Tool)
@@ -154,6 +155,21 @@ class TriggerWindow(QWidget):
 
         progressiveBox.setLayout(progressiveLayout)
         return progressiveBox
+
+    def createContinuousBox(self):
+        layout = QVBoxLayout()
+        box = QGroupBox("Continuous")
+
+        self.continuousModeCheckBox = QCheckBox("Enable")
+        layout.addWidget(self.continuousModeCheckBox)
+        layout.addWidget(QLabel("Frequency"))
+        self.continuousFrequencySpin = QSpinBox(minimum=1, maximum=1000, suffix = " Hz", singleStep = 1)
+        layout.addWidget(self.continuousFrequencySpin)
+
+        box.setLayout(layout)
+
+
+        return box
 
     def createTimingBox(self):
         timingLayout = QVBoxLayout()
@@ -542,6 +558,13 @@ class PrinterController:
             partial(self.configureTriggerProgressiveFunc)
         )
 
+        self._view.triggerWindow.continuousFrequencySpin.valueChanged.connect(
+            partial(self.configureTriggerContinuousFunc)
+        )
+        self._view.triggerWindow.continuousModeCheckBox.stateChanged.connect(
+            partial(self.configureTriggerContinuousFunc)
+        )
+
     def setTriggerFunc(self, value=0):
         """Function call to configure the triggers/timing, based upon the SpinBoxes in triggerWindow"""
         delay = self._view.triggerWindow.LEDDelaySpin.value()
@@ -559,6 +582,11 @@ class PrinterController:
         distance = self._view.triggerWindow.progressiveMMPeriodSpin.value()
         angle = conv.convert(distance,"mm","angle")
         self._xy.configureTriggerProgressive(TRIGGER_AXIS, tog, angle)
+
+    def configureTriggerContinuousFunc(self, value = 0):
+        tog = self._view.triggerWindow.continuousModeCheckBox.isChecked()
+        freq = self._view.triggerWindow.continuousFrequencySpin.value()
+        self._xy.configureTriggerContinuous(TRIGGER_AXIS, freq, tog)
 
     def goToFunc(self):
         for i in (0, 1):

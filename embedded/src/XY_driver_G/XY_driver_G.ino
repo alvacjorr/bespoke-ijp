@@ -44,7 +44,12 @@ struct
 
   float progAngleOffset = 0;
   float progAnglePeriod = 10;
-  bool progressiveModeEnabled = true;
+  bool progressiveModeEnabled = false;
+
+  float continuousFrequency = 5;
+  int continuousOCR = 12500;
+  bool continuousModeEnabled = false;
+
 } conf;
 
 //timer toggle stuff
@@ -99,6 +104,7 @@ void setup()
   comm.addCommand(GCODE_TRIGGER_B, &uart_trigger);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_TIMING, &uart_configureTriggerTiming);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_PROGRESSIVE, &uart_configureTriggerProgressive);
+  comm.addCommand(GCODE_CONFIGURE_TRIGGER_CONTINUOUS, &uart_configureTriggerContinuous);
 
   // Called if the packet and checksum is ok, but the command is unsupported
   comm.addCommand(NULL, uart_default);
@@ -106,18 +112,27 @@ void setup()
   // Show list off all commands
   // comm.printCommands();
 
-  // initialize timer3 - based on code from http://www.letmakerobots.com/node/28278
+  // initialize timer3 - based on code from http://www.letsmakerobots.com/node/28278
 
   noInterrupts(); // disable all interrupts
   TCCR3A = 0;
-
   TCCR3B = 0;
-
   TCNT3 = 0;
   OCR3A = conf.LEDDelayTimerStart; // preload timer 65536-16MHz*period
   TCCR3B |= (1 << CS30);           // this is a very fast toggle so we don't need a prescaler. ie presacler = 1
   TIMSK3 |= 0;                     //disable ovf interrupt
   //TIMSK3 |= (1 << TOIE3);   // enable timer overflow interrupt
+
+  //initialise timer4 for continuous mode at 5Hz
+  TCCR4A = 0;
+  TCCR4B = 0;
+  TCNT4  = 0;
+
+  OCR4A = conf.continuousOCR;            // compare match register 16MHz/256/5Hz
+  TCCR4B |= (1 << WGM12);   // CTC mode
+  TCCR4B |= (1 << CS12);    // 256 prescaler 
+  TIMSK4 |= (1 << OCIE1A);  // enable timer compare interrupt
+
 
   //Configure Pin Change Interrupts on Digital Pin 2
   //We don't use EXINTs or attachInterrupt because they interact weirdly with the uStepper board.
@@ -161,6 +176,14 @@ ISR(PCINT2_vect)
     trigger();
   }                      //if it was, trigger the drop
   EIFR &= ~(1 << INTF0); //Clear interrupt flag
+}
+
+ISR(TIMER4_COMPA_vect)          // timer compare interrupt service routine
+
+{
+  if(conf.continuousModeEnabled){
+    trigger();
+  }
 }
 
 //ISR for the trigger
@@ -550,6 +573,28 @@ void uart_configureTriggerProgressive(char *cmd, char *data)
   conf.progressiveModeEnabled = progressiveModeEnabled;
 
   comm.send("Progressive Mode Configured OK");
+}
+
+void uart_configureTriggerContinuous(char *cmd, char *data){
+
+  
+  float continuousFrequency = conf.continuousFrequency;
+  int32_t continuousOCR = conf.continuousOCR;
+  int32_t continuousModeEnabled = conf.continuousModeEnabled;
+
+  comm.value("F", &continuousFrequency);
+  comm.value("T", &continuousModeEnabled);
+
+  conf.continuousFrequency = continuousFrequency;
+  conf.continuousModeEnabled = continuousModeEnabled;
+
+
+  conf.continuousOCR = (16000000/256)/continuousFrequency;
+  OCR4A = conf.continuousOCR;
+
+
+
+
 }
 
 /** Implemented on the WiFi shield */
