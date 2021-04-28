@@ -16,6 +16,10 @@ bool targetReached = true;
 int triggerSeq = 0;
 int maxTriggerSeq = 4;
 
+
+volatile bool frameLockout = false;
+unsigned long nextFrame = 0;
+
 // Used to keep track of configuration
 struct
 {
@@ -33,6 +37,8 @@ struct
   int LEDDelayTimerStart = 65064;  //value the timer stats at to count up to 65536.
   int LEDPulseTimerStart = 65264;  //value the timer stats at to count up to 65536. this value is abous 20us
   int LEDSecondTimerStart = 65264; // same but for the second pulse
+  float cameraMaxFPS = 30;
+  long cameraMinFrameTime = 33; //Camera Lockout time in milliseconds. by default this corresponds to 30 FPS
 
   bool secondPulseEnabled = false;
 
@@ -137,6 +143,14 @@ void setup()
   interrupts(); // enable all interrupts
 }
 
+void handleLockout(){
+  if(frameLockout){
+    if(millis()>nextFrame){
+      frameLockout = false;
+    }
+  }
+}
+
 //ISR routine for pin 2.
 ISR(PCINT2_vect)
 {
@@ -160,6 +174,7 @@ ISR(TIMER3_OVF_vect)
     //digitalWrite(PIN_TRIGGER_DROP, HIGH); //go high
     PORT_TRIGGER_DROP |= (1 << PIN_TRIGGER_DROP);
 
+
     break;
 
   case 1:
@@ -168,7 +183,8 @@ ISR(TIMER3_OVF_vect)
     PORT_TRIGGER_LED |= (1 << PIN_TRIGGER_LED);
     PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
     PORT_TRIGGER_SHUTTER |= (1 << PIN_TRIGGER_SHUTTER);
-    //comm.send("3");
+
+
 
     break;
 
@@ -196,11 +212,22 @@ ISR(TIMER3_OVF_vect)
     PORTE &= ~(1 << PIN_TRIGGER_LED);
     PORT_TRIGGER_SHUTTER &= ~(1 << PIN_TRIGGER_SHUTTER);
     TIMSK3 = 0; //disable the interrupts so that this pulse is only seen once.
+    nextFrame = millis() + conf.cameraMinFrameTime;
+    frameLockout = true;
 
     break;
+
+  case 5: //I think this does not ever run. but need to check.
+    TIMSK3 = 0;
+    TCNT3 = conf.LEDDelayTimerStart;
+    PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
+    break;
+    
+
+
   }
 
-  if (triggerSeq == maxTriggerSeq)
+  if (triggerSeq >= maxTriggerSeq)
   {
     triggerSeq = 0;
   }
@@ -208,6 +235,12 @@ ISR(TIMER3_OVF_vect)
   {
     triggerSeq++;
   }
+  
+  if ((triggerSeq == 1) && frameLockout) //special case - if we are locked out by the frame rate limit, then skip the LED pulse and camera trigger.
+  {
+    triggerSeq = 5;
+  }
+  
 }
 
 void loop()
@@ -233,6 +266,7 @@ void loop()
     stepper.moveSteps(0); // Enter positioning mode again
 
   handleProgressiveTrigger();
+  handleLockout();
 }
 
 void handleProgressiveTrigger()
@@ -476,19 +510,22 @@ void uart_configureTriggerTiming(char *cmd, char *data)
   int32_t LEDSecondMicros = conf.LEDSecondMicros;
   int32_t LEDPulseTimerStart = conf.LEDPulseTimerStart;
   int32_t LEDDelayTimerStart = conf.LEDDelayTimerStart;
-
+  int32_t cameraMaxFPS = conf.cameraMaxFPS;
   int32_t LEDSecondTimerStart = conf.LEDSecondTimerStart;
-
   int32_t secondPulseEnabled = conf.secondPulseEnabled;
 
   comm.value("L", &LEDPulseLengthMicros);
   comm.value("D", &LEDDelayMicros);
   comm.value("S", &LEDSecondMicros);
   comm.value("T", &secondPulseEnabled);
+  comm.value("F", &cameraMaxFPS);
 
   conf.LEDPulseLengthMicros = LEDPulseLengthMicros;
   conf.LEDDelayMicros = LEDDelayMicros;
   conf.secondPulseEnabled = secondPulseEnabled;
+
+  conf.cameraMaxFPS = cameraMaxFPS;
+  conf.cameraMinFrameTime = 1000/cameraMaxFPS;
 
   conf.LEDPulseTimerStart = 65536 - (16 * (LEDPulseLengthMicros - TIMER_DELAY_COMPENSATION)); //derive value of OCR3A from the A Pulse Length. NB the -3 is just a fudge. minimum value of 12us currently!! max is about 4ms.
   conf.LEDDelayTimerStart = 65536 - (16 * (LEDDelayMicros - TIMER_DELAY_COMPENSATION));

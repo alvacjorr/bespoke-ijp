@@ -225,8 +225,8 @@ class XYSerialInterface:
         msg = self.GTriggerA()
         self.command(axis, msg)
 
-    def setDurations(self, axis, delay, led, second, tog):
-        msg = self.GSetDurations(delay, led, second, tog)
+    def setDurations(self, axis, delay, led, second, tog, fps):
+        msg = self.GSetDurations(delay, led, second, tog, fps)
         self.command(axis, msg)
 
     def configureTriggerProgressive(self, axis, tog, angle):
@@ -237,7 +237,7 @@ class XYSerialInterface:
         datastring = "M19 \n"
         return datastring.encode("utf-8")
 
-    def GSetDurations(self, delay, led, second, tog):  # duration should be in us
+    def GSetDurations(self, delay, led, second, tog, fps):  # duration should be in us
         tog = int(tog == True)
         datastring = (
             "M18 D"
@@ -248,6 +248,8 @@ class XYSerialInterface:
             + str(second)
             + " T"
             + str(tog)
+            + " F"
+            + str(fps)
             + " \n"
         )
         return datastring.encode("utf-8")

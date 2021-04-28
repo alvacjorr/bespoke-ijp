@@ -148,8 +148,9 @@ class TriggerWindow(QWidget):
 
         self.progressiveModeCheckBox = QCheckBox("Enable")
         progressiveLayout.addWidget(self.progressiveModeCheckBox)
-        self.progressiveAnglePeriodSpin = QDoubleSpinBox(minimum=0.1, maximum=90)
-        progressiveLayout.addWidget(self.progressiveAnglePeriodSpin)
+        progressiveLayout.addWidget(QLabel("Distance/mm"))
+        self.progressiveMMPeriodSpin = QDoubleSpinBox(minimum=0.01, maximum=100, suffix = " mm", singleStep = 0.01)
+        progressiveLayout.addWidget(self.progressiveMMPeriodSpin)
 
         progressiveBox.setLayout(progressiveLayout)
         return progressiveBox
@@ -157,6 +158,10 @@ class TriggerWindow(QWidget):
     def createTimingBox(self):
         timingLayout = QVBoxLayout()
         timingBox = QGroupBox("Timing")
+
+        timingLayout.addWidget(QLabel("Camera Max FPS"))
+        self.CameraFPSSpin = QSpinBox(minimum = 1, maximum = 120)
+        timingLayout.addWidget(self.CameraFPSSpin)
 
         timingLayout.addWidget(QLabel("LED Delay/us"))
 
@@ -526,8 +531,11 @@ class PrinterController:
         self._view.triggerWindow.secondPulseEnable.stateChanged.connect(
             partial(self.setTriggerFunc)
         )
+        self._view.triggerWindow.CameraFPSSpin.valueChanged.connect(
+            partial(self.setTriggerFunc)
+        )
 
-        self._view.triggerWindow.progressiveAnglePeriodSpin.valueChanged.connect(
+        self._view.triggerWindow.progressiveMMPeriodSpin.valueChanged.connect(
             partial(self.configureTriggerProgressiveFunc)
         )
         self._view.triggerWindow.progressiveModeCheckBox.stateChanged.connect(
@@ -541,13 +549,15 @@ class PrinterController:
         second = self._view.triggerWindow.LEDSecondSpin.value()
 
         tog = self._view.triggerWindow.secondPulseEnable.isChecked()
+        fps = self._view.triggerWindow.CameraFPSSpin.value()
 
         self._view.triggerWindow.LEDSecondSpin.setMinimum(exposure + 10)
-        self._xy.setDurations(TRIGGER_AXIS, delay, exposure, second, tog)
+        self._xy.setDurations(TRIGGER_AXIS, delay, exposure, second, tog, fps)
 
     def configureTriggerProgressiveFunc(self, value=0):
         tog = self._view.triggerWindow.progressiveModeCheckBox.isChecked()
-        angle = self._view.triggerWindow.progressiveAnglePeriodSpin.value()
+        distance = self._view.triggerWindow.progressiveMMPeriodSpin.value()
+        angle = conv.convert(distance,"mm","angle")
         self._xy.configureTriggerProgressive(TRIGGER_AXIS, tog, angle)
 
     def goToFunc(self):
