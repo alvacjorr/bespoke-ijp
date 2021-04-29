@@ -577,19 +577,22 @@ void uart_configureTriggerProgressive(char *cmd, char *data)
 
 void uart_configureTriggerContinuous(char *cmd, char *data){
 
-  
+  //store the old config values
   float continuousFrequency = conf.continuousFrequency;
   int32_t continuousOCR = conf.continuousOCR;
   int32_t continuousModeEnabled = conf.continuousModeEnabled;
 
+  //if new ones are available, overwrite them
   comm.value("F", &continuousFrequency);
   comm.value("T", &continuousModeEnabled);
 
+  //and apply them
   conf.continuousFrequency = continuousFrequency;
   conf.continuousModeEnabled = continuousModeEnabled;
 
 
-  conf.continuousOCR = (16000000/256)/continuousFrequency;
+  //calculate the value of OCR4A needed and apply it
+  conf.continuousOCR = (F_CPU/256)/continuousFrequency;
   OCR4A = conf.continuousOCR;
 
 
