@@ -657,7 +657,10 @@ class PrinterController:
         # print("updating lcd")
 
         # self.updatePowerSupplyIndicator()
-        self.updateTemperatureIndicator()
+        try:
+            self.updateTemperatureIndicator()
+        except:
+            print("Error getting data from PSU - is it connected?")
 
         """this bit does the mechanical data"""
         if self._xy.isBlocking == 0:
