@@ -48,10 +48,12 @@ class XYSerialInterface:
             except:
                 flag = 1
                 i = input(
-                    "Unable to connect to steppers. Would you like to retry (r) or reconfigure (c)?"
+                    "Unable to connect to steppers. Would you like to retry (r), ignore(i) or reconfigure (c)?"
                 )
                 if i == "c":
                     port_finder.configure_and_commit()
+                if i == "i":
+                    flag = 0
 
     def initialisePosition(self):
         self.currentPosition = {}
@@ -219,25 +221,27 @@ class XYSerialInterface:
         return parsed
 
     def trigger(self, axis, trigger):
-        if trigger == "A":
-            msg = self.GTriggerA()
-        elif trigger == "B":
-            msg = self.GTriggerB()
+        #if trigger == "A":
+        msg = self.GTriggerA()
         self.command(axis, msg)
 
-    def setDurations(self, axis, delay, led, second, tog):
-        msg = self.GSetDurations(delay, led, second, tog)
+    def setDurations(self, axis, delay, led, second, tog, fps):
+        msg = self.GSetDurations(delay, led, second, tog, fps)
         self.command(axis, msg)
 
     def configureTriggerProgressive(self, axis, tog, angle):
         msg = self.GConfigureTriggerProgressive(tog, angle)
         self.command(axis, msg)
 
+    def configureTriggerContinuous(self, axis, freq, tog):
+        msg = self.GConfigureTriggerContinuous(freq, tog)
+        self.command(axis, msg)
+
     def GTriggerA(self):
         datastring = "M19 \n"
         return datastring.encode("utf-8")
 
-    def GSetDurations(self, delay, led, second, tog):  # duration should be in us
+    def GSetDurations(self, delay, led, second, tog, fps):  # duration should be in us
         tog = int(tog == True)
         datastring = (
             "M18 D"
@@ -248,6 +252,8 @@ class XYSerialInterface:
             + str(second)
             + " T"
             + str(tog)
+            + " F"
+            + str(fps)
             + " \n"
         )
         return datastring.encode("utf-8")
@@ -255,6 +261,11 @@ class XYSerialInterface:
     def GConfigureTriggerProgressive(self, tog, angle):
         tog = int(tog == True)
         datastring = "M21 T" + str(tog) + " P" + str(angle) + " \n"
+        return datastring.encode("utf-8")
+
+    def GConfigureTriggerContinuous(self, freq, tog):
+        tog = int(tog == True)
+        datastring = "M22 T" + str(tog) + " F" + str(freq) + " \n"
         return datastring.encode("utf-8")
 
     def parseData(self, data):

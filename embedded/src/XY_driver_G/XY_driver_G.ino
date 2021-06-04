@@ -16,6 +16,9 @@ bool targetReached = true;
 int triggerSeq = 0;
 int maxTriggerSeq = 4;
 
+volatile bool frameLockout = false;
+unsigned long nextFrame = 0;
+
 // Used to keep track of configuration
 struct
 {
@@ -33,12 +36,19 @@ struct
   int LEDDelayTimerStart = 65064;  //value the timer stats at to count up to 65536.
   int LEDPulseTimerStart = 65264;  //value the timer stats at to count up to 65536. this value is abous 20us
   int LEDSecondTimerStart = 65264; // same but for the second pulse
+  float cameraMaxFPS = 30;
+  long cameraMinFrameTime = 33; //Camera Lockout time in milliseconds. by default this corresponds to 30 FPS
 
   bool secondPulseEnabled = false;
 
   float progAngleOffset = 0;
   float progAnglePeriod = 10;
   bool progressiveModeEnabled = false;
+
+  float continuousFrequency = 5;
+  int continuousOCR = 12500;
+  bool continuousModeEnabled = false;
+
 } conf;
 
 //timer toggle stuff
@@ -93,6 +103,7 @@ void setup()
   comm.addCommand(GCODE_TRIGGER_ALT, &uart_trigger);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_TIMING, &uart_configureTriggerTiming);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_PROGRESSIVE, &uart_configureTriggerProgressive);
+  comm.addCommand(GCODE_CONFIGURE_TRIGGER_CONTINUOUS, &uart_configureTriggerContinuous);
 
   // Called if the packet and checksum is ok, but the command is unsupported
   comm.addCommand(NULL, uart_default);
@@ -100,18 +111,26 @@ void setup()
   // Show list off all commands
   // comm.printCommands();
 
-  // initialize timer3 - based on code from http://www.letmakerobots.com/node/28278
+  // initialize timer3 - based on code from http://www.letsmakerobots.com/node/28278
 
   noInterrupts(); // disable all interrupts
   TCCR3A = 0;
-
   TCCR3B = 0;
-
   TCNT3 = 0;
   OCR3A = conf.LEDDelayTimerStart; // preload timer 65536-16MHz*period
   TCCR3B |= (1 << CS30);           // this is a very fast toggle so we don't need a prescaler. ie presacler = 1
   TIMSK3 |= 0;                     //disable ovf interrupt
   //TIMSK3 |= (1 << TOIE3);   // enable timer overflow interrupt
+
+  //initialise timer4 for continuous mode at 5Hz
+  TCCR4A = 0;
+  TCCR4B = 0;
+  TCNT4 = 0;
+
+  OCR4A = conf.continuousOCR; // compare match register 16MHz/256/5Hz
+  TCCR4B |= (1 << WGM12);     // CTC mode
+  TCCR4B |= (1 << CS12);      // 256 prescaler
+  TIMSK4 |= (1 << OCIE1A);    // enable timer compare interrupt
 
   //Configure Pin Change Interrupts on Digital Pin 2
   //We don't use EXINTs or attachInterrupt because they interact weirdly with the uStepper board.
@@ -137,6 +156,17 @@ void setup()
   interrupts(); // enable all interrupts
 }
 
+void handleLockout()
+{
+  if (frameLockout)
+  {
+    if (millis() > nextFrame)
+    {
+      frameLockout = false;
+    }
+  }
+}
+
 //ISR routine for pin 2.
 ISR(PCINT2_vect)
 {
@@ -147,6 +177,15 @@ ISR(PCINT2_vect)
     trigger();
   }                      //if it was, trigger the drop
   EIFR &= ~(1 << INTF0); //Clear interrupt flag
+}
+
+ISR(TIMER4_COMPA_vect) // timer compare interrupt service routine
+
+{
+  if (conf.continuousModeEnabled)
+  {
+    trigger();
+  }
 }
 
 //ISR for the trigger
@@ -168,7 +207,6 @@ ISR(TIMER3_OVF_vect)
     PORT_TRIGGER_LED |= (1 << PIN_TRIGGER_LED);
     PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
     PORT_TRIGGER_SHUTTER |= (1 << PIN_TRIGGER_SHUTTER);
-    //comm.send("3");
 
     break;
 
@@ -196,17 +234,30 @@ ISR(TIMER3_OVF_vect)
     PORTE &= ~(1 << PIN_TRIGGER_LED);
     PORT_TRIGGER_SHUTTER &= ~(1 << PIN_TRIGGER_SHUTTER);
     TIMSK3 = 0; //disable the interrupts so that this pulse is only seen once.
+    nextFrame = millis() + conf.cameraMinFrameTime;
+    frameLockout = true;
 
+    break;
+
+  case 5: //I think this does not ever run. but need to check.
+    TIMSK3 = 0;
+    TCNT3 = conf.LEDDelayTimerStart;
+    PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
     break;
   }
 
-  if (triggerSeq == maxTriggerSeq)
+  if (triggerSeq >= maxTriggerSeq)
   {
     triggerSeq = 0;
   }
   else
   {
     triggerSeq++;
+  }
+
+  if ((triggerSeq == 1) && frameLockout) //special case - if we are locked out by the frame rate limit, then skip the LED pulse and camera trigger.
+  {
+    triggerSeq = 5;
   }
 }
 
@@ -233,6 +284,7 @@ void loop()
     stepper.moveSteps(0); // Enter positioning mode again
 
   handleProgressiveTrigger();
+  handleLockout();
 }
 
 void handleProgressiveTrigger()
@@ -476,19 +528,22 @@ void uart_configureTriggerTiming(char *cmd, char *data)
   int32_t LEDSecondMicros = conf.LEDSecondMicros;
   int32_t LEDPulseTimerStart = conf.LEDPulseTimerStart;
   int32_t LEDDelayTimerStart = conf.LEDDelayTimerStart;
-
+  int32_t cameraMaxFPS = conf.cameraMaxFPS;
   int32_t LEDSecondTimerStart = conf.LEDSecondTimerStart;
-
   int32_t secondPulseEnabled = conf.secondPulseEnabled;
 
   comm.value("L", &LEDPulseLengthMicros);
   comm.value("D", &LEDDelayMicros);
   comm.value("S", &LEDSecondMicros);
   comm.value("T", &secondPulseEnabled);
+  comm.value("F", &cameraMaxFPS);
 
   conf.LEDPulseLengthMicros = LEDPulseLengthMicros;
   conf.LEDDelayMicros = LEDDelayMicros;
   conf.secondPulseEnabled = secondPulseEnabled;
+
+  conf.cameraMaxFPS = cameraMaxFPS;
+  conf.cameraMinFrameTime = 1000 / cameraMaxFPS;
 
   conf.LEDPulseTimerStart = 65536 - (16 * (LEDPulseLengthMicros - TIMER_DELAY_COMPENSATION)); //derive value of OCR3A from the A Pulse Length. NB the -3 is just a fudge. minimum value of 12us currently!! max is about 4ms.
   conf.LEDDelayTimerStart = 65536 - (16 * (LEDDelayMicros - TIMER_DELAY_COMPENSATION));
@@ -515,6 +570,23 @@ void uart_configureTriggerProgressive(char *cmd, char *data)
   conf.progressiveModeEnabled = progressiveModeEnabled;
 
   comm.send("Progressive Mode Configured OK");
+}
+
+void uart_configureTriggerContinuous(char *cmd, char *data)
+{
+
+  float continuousFrequency = conf.continuousFrequency;
+  int32_t continuousOCR = conf.continuousOCR;
+  int32_t continuousModeEnabled = conf.continuousModeEnabled;
+
+  comm.value("F", &continuousFrequency);
+  comm.value("T", &continuousModeEnabled);
+
+  conf.continuousFrequency = continuousFrequency;
+  conf.continuousModeEnabled = continuousModeEnabled;
+
+  conf.continuousOCR = (16000000 / 256) / continuousFrequency;
+  OCR4A = conf.continuousOCR;
 }
 
 /** Implemented on the WiFi shield */
