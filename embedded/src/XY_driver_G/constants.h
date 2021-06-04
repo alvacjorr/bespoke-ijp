@@ -25,11 +25,10 @@
 #define GCODE_REQUEST_DATA "M15"
 #define GCODE_REQUEST_CONFIG "M16"
 
-
-
 //IJP-specific codes
 #define GCODE_REQUEST_TEMP "M17" //get temperature data
 #define GCODE_CONFIGURE_TRIGGER_TIMING "M18"
+
 #define GCODE_TRIGGER_A "M19"
 #define GCODE_TRIGGER_B "M20" //deprecated
 #define GCODE_CONFIGURE_TRIGGER_PROGRESSIVE "M21"
@@ -38,7 +37,7 @@
 //Port registers for the various output pins.
 //Consult uStepper datasheet and circuit diagram before changing these
 //Trigger pin is logical E0, physical D8
-#define PIN_TRIGGER_DROP 0 
+#define PIN_TRIGGER_DROP 0
 #define PORT_TRIGGER_DROP PORTE
 #define DDR_TRIGGER_DROP DDRE
 #define PIN_TRIGGER_LED 1 // E1 (D7)
@@ -53,5 +52,3 @@
 #define PIN_TEMP_NOZZLE A1
 
 #define TIMER_DELAY_COMPENSATION 2.4 //fudge factor because Arduino is slow!!!
-
-

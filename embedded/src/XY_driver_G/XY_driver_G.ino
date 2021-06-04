@@ -16,7 +16,6 @@ bool targetReached = true;
 int triggerSeq = 0;
 int maxTriggerSeq = 4;
 
-
 volatile bool frameLockout = false;
 unsigned long nextFrame = 0;
 
@@ -100,8 +99,8 @@ void setup()
   comm.addCommand(GCODE_REQUEST_CONFIG, &uart_sendConfig);
   comm.addCommand(GCODE_REQUEST_TEMP, &uart_sendTemp);
 
-  comm.addCommand(GCODE_TRIGGER_A, &uart_trigger);
-  comm.addCommand(GCODE_TRIGGER_B, &uart_trigger);
+  comm.addCommand(GCODE_TRIGGER, &uart_trigger);
+  comm.addCommand(GCODE_TRIGGER_ALT, &uart_trigger);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_TIMING, &uart_configureTriggerTiming);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_PROGRESSIVE, &uart_configureTriggerProgressive);
   comm.addCommand(GCODE_CONFIGURE_TRIGGER_CONTINUOUS, &uart_configureTriggerContinuous);
@@ -126,13 +125,12 @@ void setup()
   //initialise timer4 for continuous mode at 5Hz
   TCCR4A = 0;
   TCCR4B = 0;
-  TCNT4  = 0;
+  TCNT4 = 0;
 
-  OCR4A = conf.continuousOCR;            // compare match register 16MHz/256/5Hz
-  TCCR4B |= (1 << WGM12);   // CTC mode
-  TCCR4B |= (1 << CS12);    // 256 prescaler 
-  TIMSK4 |= (1 << OCIE1A);  // enable timer compare interrupt
-
+  OCR4A = conf.continuousOCR; // compare match register 16MHz/256/5Hz
+  TCCR4B |= (1 << WGM12);     // CTC mode
+  TCCR4B |= (1 << CS12);      // 256 prescaler
+  TIMSK4 |= (1 << OCIE1A);    // enable timer compare interrupt
 
   //Configure Pin Change Interrupts on Digital Pin 2
   //We don't use EXINTs or attachInterrupt because they interact weirdly with the uStepper board.
@@ -158,9 +156,12 @@ void setup()
   interrupts(); // enable all interrupts
 }
 
-void handleLockout(){
-  if(frameLockout){
-    if(millis()>nextFrame){
+void handleLockout()
+{
+  if (frameLockout)
+  {
+    if (millis() > nextFrame)
+    {
       frameLockout = false;
     }
   }
@@ -178,10 +179,11 @@ ISR(PCINT2_vect)
   EIFR &= ~(1 << INTF0); //Clear interrupt flag
 }
 
-ISR(TIMER4_COMPA_vect)          // timer compare interrupt service routine
+ISR(TIMER4_COMPA_vect) // timer compare interrupt service routine
 
 {
-  if(conf.continuousModeEnabled){
+  if (conf.continuousModeEnabled)
+  {
     trigger();
   }
 }
@@ -197,7 +199,6 @@ ISR(TIMER3_OVF_vect)
     //digitalWrite(PIN_TRIGGER_DROP, HIGH); //go high
     PORT_TRIGGER_DROP |= (1 << PIN_TRIGGER_DROP);
 
-
     break;
 
   case 1:
@@ -206,8 +207,6 @@ ISR(TIMER3_OVF_vect)
     PORT_TRIGGER_LED |= (1 << PIN_TRIGGER_LED);
     PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
     PORT_TRIGGER_SHUTTER |= (1 << PIN_TRIGGER_SHUTTER);
-
-
 
     break;
 
@@ -245,9 +244,6 @@ ISR(TIMER3_OVF_vect)
     TCNT3 = conf.LEDDelayTimerStart;
     PORT_TRIGGER_DROP &= ~(1 << PIN_TRIGGER_DROP);
     break;
-    
-
-
   }
 
   if (triggerSeq >= maxTriggerSeq)
@@ -258,12 +254,11 @@ ISR(TIMER3_OVF_vect)
   {
     triggerSeq++;
   }
-  
+
   if ((triggerSeq == 1) && frameLockout) //special case - if we are locked out by the frame rate limit, then skip the LED pulse and camera trigger.
   {
     triggerSeq = 5;
   }
-  
 }
 
 void loop()
@@ -298,13 +293,13 @@ void handleProgressiveTrigger()
   {
     float theta = stepper.angleMoved();
 
-    if (theta > conf.progAngleOffset)
+    if (theta > conf.progAngleOffset + conf.progAnglePeriod)
     {
       trigger();
       conf.progAngleOffset += conf.progAnglePeriod;
     }
 
-    if (theta < conf.progAngleOffset - 2 * conf.progAnglePeriod)
+    if (theta < conf.progAngleOffset - conf.progAnglePeriod)
     {
       trigger();
       conf.progAngleOffset -= conf.progAnglePeriod;
@@ -548,7 +543,7 @@ void uart_configureTriggerTiming(char *cmd, char *data)
   conf.secondPulseEnabled = secondPulseEnabled;
 
   conf.cameraMaxFPS = cameraMaxFPS;
-  conf.cameraMinFrameTime = 1000/cameraMaxFPS;
+  conf.cameraMinFrameTime = 1000 / cameraMaxFPS;
 
   conf.LEDPulseTimerStart = 65536 - (16 * (LEDPulseLengthMicros - TIMER_DELAY_COMPENSATION)); //derive value of OCR3A from the A Pulse Length. NB the -3 is just a fudge. minimum value of 12us currently!! max is about 4ms.
   conf.LEDDelayTimerStart = 65536 - (16 * (LEDDelayMicros - TIMER_DELAY_COMPENSATION));
@@ -568,6 +563,8 @@ void uart_configureTriggerProgressive(char *cmd, char *data)
   comm.value("P", &progAnglePeriod);
   comm.value("T", &progressiveModeEnabled);
 
+  progAngleOffset = stepper.angleMoved();
+
   conf.progAngleOffset = progAngleOffset;
   conf.progAnglePeriod = progAnglePeriod;
   conf.progressiveModeEnabled = progressiveModeEnabled;
@@ -575,7 +572,8 @@ void uart_configureTriggerProgressive(char *cmd, char *data)
   comm.send("Progressive Mode Configured OK");
 }
 
-void uart_configureTriggerContinuous(char *cmd, char *data){
+void uart_configureTriggerContinuous(char *cmd, char *data)
+{
 
   //store the old config values
   float continuousFrequency = conf.continuousFrequency;
@@ -594,10 +592,6 @@ void uart_configureTriggerContinuous(char *cmd, char *data){
   //calculate the value of OCR4A needed and apply it
   conf.continuousOCR = (F_CPU/256)/continuousFrequency;
   OCR4A = conf.continuousOCR;
-
-
-
-
 }
 
 /** Implemented on the WiFi shield */

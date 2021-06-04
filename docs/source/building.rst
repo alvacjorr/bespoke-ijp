@@ -108,6 +108,5 @@ Registering the X and Y axes with the GUI
 ------------------------------
 
 To distinguish between the X and Y rails, simply specifying a COM or tty port can result in guesswork.
-To simplify this process, I made a python script that prints the unique serial numbers from the uSteppers, allowing the X and Y stages to be directly identified, from system to system.
-
-
+To simplify this process, the first time the program is run, it will look for a configuration file (ports_serial.py) with some serial numbers in it.
+If this file does not exist, it will make a new one.
