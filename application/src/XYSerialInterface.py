@@ -2,6 +2,7 @@ import serial
 from constants import *
 from EndstopBox import EndstopBox
 import re
+import conversions as conv
 
 import port_finder
 
@@ -76,7 +77,7 @@ class XYSerialInterface:
         # print(dimMap[axis] +" " + str(steps) + " steps")
 
     def moveStepsAbsolute(self, axis, steps):
-        """Move to an absolute position in steps
+        """Move to an absolute position in steps. Always open loop.
 
         :param axis: Axis to move
         :type axis: int
@@ -85,18 +86,26 @@ class XYSerialInterface:
         """
 
         diff = int(steps - self.currentPosition[axis])
-        print(diff)
+        # print(diff)
         self.move(axis, diff)
 
-    def moveAngleAbsolute(self, axis, angle):
+    def moveAngleAbsolute(self, axis, angle, mode="OPEN_LOOP"):
         """Move to an absolute angle
 
         :param axis: axis to move
         :type axis: int
         :param angle: angle to move to
         :type angle: float
+        :param mode: Mode - either "CLOSED_LOOP" or "OPEN_LOOP"
+        :type mode: string
         """
-        self.command(axis, self.GmoveAngleAbsolute(angle))
+
+        if mode == "CLOSED_LOOP":
+            self.command(axis, self.GmoveAngleAbsolute(angle))
+
+        elif mode == "OPEN_LOOP":
+            steps = conv.convert(angle, "angle", "steps")
+            self.moveStepsAbsolute(axis, steps)
 
     def homeBoth(self):
         """Home both motors and reset their zero point"""
@@ -221,7 +230,7 @@ class XYSerialInterface:
         return parsed
 
     def trigger(self, axis, trigger):
-        #if trigger == "A":
+        # if trigger == "A":
         msg = self.GTriggerA()
         self.command(axis, msg)
 
