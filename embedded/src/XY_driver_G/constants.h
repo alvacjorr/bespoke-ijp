@@ -55,8 +55,13 @@
 #define PORT_TRIGGER_SHUTTER PORTC
 #define DDR_TRIGGER_SHUTTER DDRC
 
-//Analogue pins for temperature sensing (to be deprecated once we have digital temperature sensing)
-#define PIN_TEMP_BED A0
-#define PIN_TEMP_NOZZLE A1
 
 #define TIMER_DELAY_COMPENSATION 2.4 //fudge factor because Arduino is slow!!!
+
+
+//Software SPI pins for the (digital) thermocouples
+
+#define MAXDO   5
+#define MAXCS   6
+#define MAXCLK  7
+#define MAXCS2  8

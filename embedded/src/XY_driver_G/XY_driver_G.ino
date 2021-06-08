@@ -2,6 +2,10 @@
 #include "gcode.h"
 #include "constants.h"
 
+#include <SPI.h>
+#include "Adafruit_MAX31855.h"
+
+
 #define UARTPORT Serial
 #define DEBUGPORT Serial1
 
@@ -9,6 +13,11 @@
 
 uStepperS stepper;
 GCode comm;
+
+//thermocouples
+
+Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO); 
+Adafruit_MAX31855 thermocouple2(MAXCLK, MAXCS2, MAXDO);
 
 float target = 0.0;
 bool targetReached = true;
@@ -53,6 +62,8 @@ struct
 
 //timer toggle stuff
 
+
+
 void setup()
 {
 
@@ -62,15 +73,32 @@ void setup()
 
   UARTPORT.begin(115200);
 
+  //Setup the thermocouples
+
+
+
+
   //configure the stepper motor
 
-  stepper.setup(CLOSEDLOOP, 200);
-  stepper.disableClosedLoop();
+  stepper.setup();
 
   stepper.setMaxAcceleration(conf.acceleration);
   stepper.setMaxDeceleration(conf.acceleration);
   stepper.setMaxVelocity(conf.velocity);
 
+  // wait for MAX chip to stabilize
+  delay(500);
+  thermocouple.begin();
+  thermocouple2.begin();
+  
+
+  configureComm();
+  configurePinsAndInterrupts();
+
+}
+
+void configureComm(){
+  
   comm.setSendFunc(&uart_send);
 
   // Add GCode commands
@@ -110,6 +138,9 @@ void setup()
 
   // Show list off all commands
   // comm.printCommands();
+}
+
+void configurePinsAndInterrupts(){
 
   // initialize timer3 - based on code from http://www.letsmakerobots.com/node/28278
 
@@ -260,6 +291,9 @@ ISR(TIMER3_OVF_vect)
     triggerSeq = 5;
   }
 }
+
+
+
 
 void loop()
 {
@@ -496,8 +530,12 @@ void uart_sendTemp(char *cmd, char *data)
   char strNozzle[10] = {'\0'};
   char strBed[10] = {'\0'};
 
-  dtostrf(analogRead(PIN_TEMP_NOZZLE), 4, 2, strNozzle);
-  dtostrf(analogRead(PIN_TEMP_BED), 4, 2, strBed);
+
+  double c1 = thermocouple.readCelsius();
+  double c2 = thermocouple2.readCelsius();
+
+  dtostrf(c1, 4, 2, strNozzle);
+  dtostrf(c2, 4, 2, strBed);
 
   strcat(buf, "TEMP ");
   sprintf(buf + strlen(buf), "N%s B%s", strNozzle, strBed);

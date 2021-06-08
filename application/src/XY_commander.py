@@ -691,7 +691,7 @@ class PrinterController:
         tempData = self._xy.getTempData(TEMP_AXIS)
         # print(tempData)
         for letter, number in tempData.items():
-            temp = conv.analogToTemp(number)
+            temp = number
             if letter == "B":
                 # print('Bed Temperature = ' + str(temp))
                 self.bed_controller.update(temp)
