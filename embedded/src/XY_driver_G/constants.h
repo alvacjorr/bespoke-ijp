@@ -29,23 +29,31 @@
 #define GCODE_REQUEST_TEMP "M17" //get temperature data
 #define GCODE_CONFIGURE_TRIGGER_TIMING "M18"
 
-#define GCODE_TRIGGER_A "M19"
-#define GCODE_TRIGGER_B "M20" //deprecated
+#define GCODE_TRIGGER "M19"
+#define GCODE_TRIGGER_ALT "M20" //deprecated
 #define GCODE_CONFIGURE_TRIGGER_PROGRESSIVE "M21"
 #define GCODE_CONFIGURE_TRIGGER_CONTINUOUS "M22"
 
 //Port registers for the various output pins.
 //Consult uStepper datasheet and circuit diagram before changing these
-//Trigger pin is logical E0, physical D8
-#define PIN_TRIGGER_DROP 0
-#define PORT_TRIGGER_DROP PORTE
-#define DDR_TRIGGER_DROP DDRE
-#define PIN_TRIGGER_LED 1 // E1 (D7)
-#define PORT_TRIGGER_LED PORTE
-#define DDR_TRIGGER_LED DDRE
-#define PIN_TRIGGER_SHUTTER 5 //B5 (D6)
-#define PORT_TRIGGER_SHUTTER PORTB
-#define DDR_TRIGGER_SHUTTER DDRB
+
+//Droplet Trigger is on D3 (PD2)
+
+#define PIN_TRIGGER_DROP 2
+#define PORT_TRIGGER_DROP PORTD
+#define DDR_TRIGGER_DROP DDRD
+
+//LED Strobe is on  D4 (PB3)
+
+#define PIN_TRIGGER_LED 3 
+#define PORT_TRIGGER_LED PORTB
+#define DDR_TRIGGER_LED DDRB
+
+//Camera Shutter is on A0 (PC5)
+
+#define PIN_TRIGGER_SHUTTER 5 
+#define PORT_TRIGGER_SHUTTER PORTC
+#define DDR_TRIGGER_SHUTTER DDRC
 
 //Analogue pins for temperature sensing (to be deprecated once we have digital temperature sensing)
 #define PIN_TEMP_BED A0

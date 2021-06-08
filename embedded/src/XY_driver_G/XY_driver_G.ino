@@ -231,7 +231,7 @@ ISR(TIMER3_OVF_vect)
 
     TCNT3 = conf.LEDDelayTimerStart;
 
-    PORTE &= ~(1 << PIN_TRIGGER_LED);
+    PORT_TRIGGER_LED &= ~(1 << PIN_TRIGGER_LED);
     PORT_TRIGGER_SHUTTER &= ~(1 << PIN_TRIGGER_SHUTTER);
     TIMSK3 = 0; //disable the interrupts so that this pulse is only seen once.
     nextFrame = millis() + conf.cameraMinFrameTime;
