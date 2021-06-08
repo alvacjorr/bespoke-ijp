@@ -177,6 +177,7 @@ class TriggerWindow(QWidget):
 
         timingLayout.addWidget(QLabel("Camera Max FPS"))
         self.CameraFPSSpin = QSpinBox(minimum = 1, maximum = 120)
+        self.CameraFPSSpin.setValue(20)
         timingLayout.addWidget(self.CameraFPSSpin)
 
         timingLayout.addWidget(QLabel("LED Delay/us"))
@@ -665,9 +666,12 @@ class PrinterController:
             print("Error getting data from PSU - is it connected?")
 
         """this bit does the mechanical data"""
+        
         if self._xy.isBlocking == 0:
             for i in range(0, 2):  # get positional data and display it
+                
                 data = self._xy.getData(i)
+                
                 for letter, number in data.items():
                     self._view.PILCDScreens[
                         i, LCDvals.get(LETTER_TO_LCD.get(letter))
@@ -679,6 +683,8 @@ class PrinterController:
                         self._view.PILCDScreens[i, LCDvals.get("mm")].display(
                             conv.convert(number, "angle", "mm")
                         )
+                
+        
 
     def updateTemperatureIndicator(self):
         """Update GUI temperature data"""
