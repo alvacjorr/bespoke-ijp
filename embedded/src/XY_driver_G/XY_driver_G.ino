@@ -73,7 +73,7 @@ void setup()
 
   UARTPORT.begin(115200);
 
-  //Setup the thermocouples
+
 
 
 
@@ -81,6 +81,9 @@ void setup()
   //configure the stepper motor
 
   stepper.setup();
+
+  //DDRB |= (1 << 4);
+  DDRB &= ~(1<<4); //clear bit 4 of DDRB, undoing a bug in uStepperS.
 
   stepper.setMaxAcceleration(conf.acceleration);
   stepper.setMaxDeceleration(conf.acceleration);
