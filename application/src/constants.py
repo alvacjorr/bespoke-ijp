@@ -126,12 +126,12 @@ POW_SERIAL_TIMEOUT = 0.01
 
 #Control Loop stuff
 
-PID_PROPORTIONAL_ON_MEASUREMENT = False
+PID_PROPORTIONAL_ON_MEASUREMENT = True
 
 # Proportional Integral and Derivative terms
 
 PID_P = 1
-PID_I = 0.05
+PID_I = 0.01
 PID_D =  0.05
 
 #uStepper Axis responsible for trigger control
