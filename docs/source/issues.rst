@@ -27,4 +27,12 @@ Backlash
 
 The system definitely has some backlash. The exact amount is yet to be quantified however!
 
+Thermocouple Grounding
+**********************
+
+The MAX31855 boards are not compatible with grounded thermocouples.
+If you ground the thermocouple (for example by putting it in contact with the optical table) it will return values of NAN.
+This will prevent the PID loop from running, causing a loss of temperature control.
+There is currently no auto-detect system for this error so do keep an eye out for it.
+Watch out for messages like "TEMP N NAN B0.00"
 
