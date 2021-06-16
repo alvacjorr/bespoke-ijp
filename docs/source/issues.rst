@@ -36,3 +36,9 @@ This will prevent the PID loop from running, causing a loss of temperature contr
 There is currently no auto-detect system for this error so do keep an eye out for it.
 Watch out for messages like "TEMP N NAN B0.00"
 
+
+Camera Software
+***************
+
+The more recend IC Capture 2.5 software occasionally has problems enabling the external trigger on the DFK USB camera.
+To get around this, use the older version 2.4!
