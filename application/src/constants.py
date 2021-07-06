@@ -80,14 +80,17 @@ CHEVRON_TO_AXIS_DICT = {
             }
 
 CHEVRON_TO_SIGN_DICT = {
-            '^': 1,
-            'v': -1,
-            '>': 1,
-            '<': -1,
+            '^': -1,
+            'v': 1,
+            '>': -1,
+            '<': 1,
             }
 
 
 #Application GUI Settings
+
+QT_REDIRECT_STDERR = False
+QT_REDIRECT_STDOUT = False
 
 QT_JOYPAD_WIDTH = 200
 QT_JOYPAD_HEIGHT = 200
