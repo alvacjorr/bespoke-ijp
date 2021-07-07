@@ -3,10 +3,6 @@ Known Issues
 
 See also https://github.com/thekeeno/bespoke-ijp/issues
 
-Mechanical Vibrations
-*********************
-
-The motors will occasionally vibrate very loudly. This will likely be fixed in future builds with a 3D printed bracket to better secure and align the motors with their axes.
 
 Rate of PSU Polling
 *******************

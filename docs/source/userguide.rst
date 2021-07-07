@@ -27,9 +27,13 @@ Before beginning any experiment, ensure that the following connections are made:
 - Power from the LED PSU (12V) to the Phlatlight LED driver
 - USB cable from the GPD-4303S heater power supply to the PC
 - Nozzle and bed heating elements to the heater PSU with banana plugs
-- Thermocouples inside the nozzle and bed heatblocks (this is VERY important - without temperature sensors the system cannot regulate its own temperature)
+- Thermocouples inside the nozzle and bed heatblocks
 - RS-232 cable from the JetDrive III
 - USB 3.0 cable from the camera to the PC
+
+.. warning::
+  It is crucial that the thermocouples are properly attached to the heating blocks. Without temperature sensors the system cannot regulate its own temperature and may engage in a thermal runaway.
+
 
 Turning on the system
 ********************
@@ -44,13 +48,20 @@ In order:
 
 #. Power on the motor power supply at the wall
 #. Power on the LED power supply at the wall
-#. Start the software by running XY_commander.py
+#. Start the main software by running XY_commander.py 
+
+  * This can be achieved either via VS Code or from the PRINTING.bat file on the desktop.
+
+#. Open IC Capture 2.4 (link on desktop)
+#. Open JetServer 4 (link on desktop)
+
 
 
 Configuring IC Capture 2.4
 **************************
 
-It is very important that you use IC Capture 2.4 - version 2.5 seems to break the trigger on the camera.
+.. warning::
+  It is very important that you use IC Capture 2.4 - version 2.5 seems to be unable to enable the trigger on the camera.
 
 #. If it does not automatically open, open the correct usb camera (DFK 23U618).
 #. Right click the image and click 'Properties', and ensure the following settings are correctly set:
@@ -67,8 +78,21 @@ It is very important that you use IC Capture 2.4 - version 2.5 seems to break th
   :width: 400
   :alt: Alternative text
 
+Configuring JetServer
+*********************
+
+JetServer tends to take care of itself - if you know how to use it then for the most part you should be fine.
+The most important thing is to set the trigger mode to 'External' so that bespoke-ijp can control it.
+
 
 Using the GUI
 *************
 
 GUI is in progress - this section is very subject to change!
+
+Trigger Configuration
+---------------------
+
+
+Heater Control
+--------------
