@@ -5,6 +5,7 @@ from PySide2.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QPlainTextEdit,
+    QTextEdit,
     QCheckBox,
     QHBoxLayout,
 )
@@ -17,7 +18,8 @@ from PySide2.QtWidgets import (
     QGroupBox,
     QDoubleSpinBox,
 )
-from PySide2.QtCore import Slot, Qt, QTimer, QDateTime, Signal
+from PySide2.QtCore import Slot, Qt, QTimer, QDateTime, Signal, QObject, Signal
+from PySide2.QtGui import QTextCursor
 import sys
 from functools import partial
 import serial
@@ -47,6 +49,16 @@ from SequenceHandler import *
 import psu_serial
 from XYSerialInterface import *
 from HeaterPIDController import *
+
+
+
+class EmittingStream(QObject):
+
+    textWritten = Signal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
+
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -227,11 +239,50 @@ class PrinterUi(QMainWindow):
     :type QMainWindow: [type]
     """
 
+
+
+
+    def __del__(self):
+        # Restore sys.stdout
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
+    def normalOutputWritten(self, text):
+        """Append text to the QTextEdit."""
+        # Maybe QTextEdit.append() works as well, but this is how I do it:
+        cursor = self.consoleOut.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.consoleOut.setTextCursor(cursor)
+        self.consoleOut.ensureCursorVisible()
     keyPressed = Signal(int)
 
     def __init__(self):
         """Creates the UI"""
+
         super().__init__()
+
+        
+
+        self.consoleOut = QTextEdit()
+        self.consoleOut.setStyleSheet("background-color: black;color: white")
+        self.consoleOut.setReadOnly(True)
+        # Install the custom output stream
+        if QT_REDIRECT_STDERR:
+
+            #sys.stdout = EmittingStream()
+            sys.stderr = EmittingStream()
+            #sys.stdout.textWritten.connect(self.normalOutputWritten)
+            sys.stderr.textWritten.connect(self.normalOutputWritten)
+
+        if QT_REDIRECT_STDOUT:
+
+            sys.stdout = EmittingStream()
+            #sys.stderr = EmittingStream()
+            sys.stdout.textWritten.connect(self.normalOutputWritten)
+            #sys.stderr.textWritten.connect(self.normalOutputWritten)
+        
+        print(WELCOME_MESSAGE)
         # Set some main window's properties
         self.setWindowTitle("Printer")
         # self.setFixedSize(300, 300)
@@ -258,6 +309,8 @@ class PrinterUi(QMainWindow):
 
         self.createToolBox(self.goToLayout)
         self.createScriptEditor(self.goToLayout)
+
+        self.goToLayout.addWidget(self.consoleOut)
 
         self.generalLayout.addLayout(self.miLayout)
         self.generalLayout.addLayout(self.goToLayout)
@@ -741,7 +794,7 @@ class psuController:
 
 def main():
     """Main function for the application"""
-    print(WELCOME_MESSAGE)
+    
     # Create an instance of QApplication
     printer = QApplication(sys.argv)
     # Show the printer's GUI
