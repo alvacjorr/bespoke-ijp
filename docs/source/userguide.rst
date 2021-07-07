@@ -23,25 +23,50 @@ Connections
 Before beginning any experiment, ensure that the following connections are made:
 
 - USB cables from both uSteppers to the PC
-- Power from the motor PSU to the two motors controllers
-- USB cable from the heater power supply to the PC
-- Nozzle and bed heating elements are conected to the heater PSU
-
-
-
+- Power from the motor PSU (24V) to the two motor controllers
+- Power from the LED PSU (12V) to the Phlatlight LED driver
+- USB cable from the GPD-4303S heater power supply to the PC
+- Nozzle and bed heating elements to the heater PSU with banana plugs
+- Thermocouples inside the nozzle and bed heatblocks (this is VERY important - without temperature sensors the system cannot regulate its own temperature)
+- RS-232 cable from the JetDrive III
+- USB 3.0 cable from the camera to the PC
 
 Turning on the system
 ********************
 
 In order:
 
-#. Power on the controlling computer
+#. Power on the controlling computer and log in
 #. Power on the heater power supply (GW INSTEK GPD-X303S)
 
   * The power supply should say USB YES on its front panel.
+  * Do not touch any controls on the front panel of the power supply.
 
-#. Power on the motor power supply and ensure it is set to 3A, 24V
-#. Start the software by opening the python file.
+#. Power on the motor power supply at the wall
+#. Power on the LED power supply at the wall
+#. Start the software by running XY_commander.py
+
+
+Configuring IC Capture 2.4
+**************************
+
+It is very important that you use IC Capture 2.4 - version 2.5 seems to break the trigger on the camera.
+
+#. If it does not automatically open, open the correct usb camera (DFK 23U618).
+#. Right click the image and click 'Properties', and ensure the following settings are correctly set:
+
+.. image:: img/ic-capture-config-color.PNG
+  :width: 400
+  :alt: Alternative text
+
+.. image:: img/ic-capture-config-exposure.PNG
+  :width: 400
+  :alt: Alternative text
+
+.. image:: img/ic-capture-config-special.PNG
+  :width: 400
+  :alt: Alternative text
+
 
 Using the GUI
 *************
