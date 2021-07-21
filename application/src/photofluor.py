@@ -21,8 +21,12 @@ class PhotoFluor_II():
         self.serial.write(b'o')
 
 def main():
-    pf = PhotoFluor_II('COM1')
-    pf.lamp_off()
+    pf = PhotoFluor_II('COM4')
+    #pf.lamp_off()
+    pf.shutter_close()
+    pf.shutter_open()
+    pf.shutter_close()
 
 
-main()
+if __name__ == "__main__":
+    main()

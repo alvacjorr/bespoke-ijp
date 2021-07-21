@@ -25,6 +25,7 @@ from functools import partial
 import serial
 import serial.tools.list_ports
 import re
+import photofluor
 from constants import *
 
 
@@ -232,6 +233,41 @@ class TriggerWindow(QWidget):
         self.showButton.clicked.connect(partial(self.toggle))
 
 
+class PhotoFluorWindow(QWidget):
+    def __init__(self, label="untitled"):
+        super().__init__()
+
+        self.pf = photofluor.PhotoFluor_II('COM4')
+
+        layout = QVBoxLayout()
+
+        self.setWindowTitle("PhotoFluor")
+
+        self.setLayout(layout)
+        self.setWindowFlags(Qt.Tool)
+        self.createShowButton()
+        # self.core = TriggerWindow(label = label)
+
+        self.shutterOpenButton  = QPushButton("Shutter Open")
+        self.shutterCloseButton = QPushButton("Shutter Close")
+        layout.addWidget(self.shutterOpenButton)
+        layout.addWidget(self.shutterCloseButton)
+
+        self.shutterOpenButton.clicked.connect(partial(self.pf.shutter_open))
+        self.shutterCloseButton.clicked.connect(partial(self.pf.shutter_close))
+
+
+    def toggle(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
+
+    def createShowButton(self):
+        showLabel = "PhotoFluor"
+        self.showButton = QPushButton(showLabel)
+        self.showButton.clicked.connect(partial(self.toggle))
+
 class PrinterUi(QMainWindow):
     """Main UI
 
@@ -306,7 +342,7 @@ class PrinterUi(QMainWindow):
         self.createHeaterIndicator(self.monitorLayout)
 
         self.createTriggerWindow()
-
+        self.createPhotoFluorWindow()
         self.createToolBox(self.goToLayout)
         self.createScriptEditor(self.goToLayout)
 
@@ -317,6 +353,9 @@ class PrinterUi(QMainWindow):
 
     def createTriggerWindow(self):
         self.triggerWindow = TriggerWindow()
+
+    def createPhotoFluorWindow(self):
+        self.photoFluorWindow = PhotoFluorWindow()
 
     def keyPressEvent(self, event):
         """Handle a keypress event"""
@@ -489,6 +528,7 @@ class PrinterUi(QMainWindow):
         ToolLayout.addWidget(self.psuOnButton, 0, 2)
         ToolLayout.addWidget(self.psuOffButton, 0, 3)
         ToolLayout.addWidget(self.triggerWindow.showButton, 0, 4)
+        ToolLayout.addWidget(self.photoFluorWindow.showButton, 0, 5)
 
         ToolBox = QGroupBox("Tools")
         ToolBox.setLayout(ToolLayout)
