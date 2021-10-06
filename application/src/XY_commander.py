@@ -268,6 +268,52 @@ class PhotoFluorWindow(QWidget):
         self.showButton = QPushButton(showLabel)
         self.showButton.clicked.connect(partial(self.toggle))
 
+class GridMacroWindow(QWidget):
+    def __init__(self, label="Grid Stuff"):
+        super().__init__()
+
+
+        self.label = label
+        layout = QVBoxLayout()
+
+        self.setWindowTitle(label)
+
+        self.setLayout(layout)
+        self.setWindowFlags(Qt.Tool)
+        self.createShowButton()
+        # self.core = TriggerWindow(label = label)
+
+        self.beginButton  = QPushButton("Begin")
+
+        self.gridXSetter = QSpinBox(minimum = 1, maximum = 20)
+        self.gridYSetter = QSpinBox(minimum = 1, maximum = 20)
+
+        self.gridXSepSetter = QSpinBox(minimum = 1, maximum = 20000)
+        self.gridYSepSetter = QSpinBox(minimum = 1, maximum = 20000)
+
+        layout.addWidget(QLabel("x"))
+        layout.addWidget(self.gridXSetter)
+        layout.addWidget(QLabel("y"))
+        layout.addWidget(self.gridYSetter)
+        layout.addWidget(QLabel("dx/steps"))
+        layout.addWidget(self.gridXSepSetter)
+        layout.addWidget(QLabel("dy/steps"))
+        layout.addWidget(self.gridYSepSetter)
+        layout.addWidget(self.beginButton)
+
+
+    def toggle(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
+
+    def createShowButton(self):
+        showLabel = self.label
+        self.showButton = QPushButton(showLabel)
+        self.showButton.clicked.connect(partial(self.toggle))
+
+
 class PrinterUi(QMainWindow):
     """Main UI
 
@@ -343,6 +389,7 @@ class PrinterUi(QMainWindow):
 
         self.createTriggerWindow()
         self.createPhotoFluorWindow()
+        self.createGridMacroWindow()
         self.createToolBox(self.goToLayout)
         self.createScriptEditor(self.goToLayout)
 
@@ -356,6 +403,9 @@ class PrinterUi(QMainWindow):
 
     def createPhotoFluorWindow(self):
         self.photoFluorWindow = PhotoFluorWindow()
+
+    def createGridMacroWindow(self):
+        self.gridMacroWindow = GridMacroWindow()
 
     def keyPressEvent(self, event):
         """Handle a keypress event"""
@@ -529,6 +579,7 @@ class PrinterUi(QMainWindow):
         ToolLayout.addWidget(self.psuOffButton, 0, 3)
         ToolLayout.addWidget(self.triggerWindow.showButton, 0, 4)
         ToolLayout.addWidget(self.photoFluorWindow.showButton, 0, 5)
+        ToolLayout.addWidget(self.gridMacroWindow.showButton,0, 6)
 
         ToolBox = QGroupBox("Tools")
         ToolBox.setLayout(ToolLayout)
@@ -660,6 +711,7 @@ class PrinterController:
         self._view.triggerWindow.continuousModeCheckBox.stateChanged.connect(
             partial(self.configureTriggerContinuousFunc)
         )
+        self._view.gridMacroWindow.beginButton.clicked.connect(partial(self.gridFunc))
 
     def setTriggerFunc(self, value=0):
         """Function call to configure the triggers/timing, based upon the SpinBoxes in triggerWindow"""
@@ -690,6 +742,8 @@ class PrinterController:
             # print(target)
             self._xy.moveStepsAbsolute(i, target)
 
+   
+
     def goToAngleFunc(self):
         for i in (0, 1):
             target = float(self._view.GoToAngleSpinners[i].text())
@@ -703,6 +757,45 @@ class PrinterController:
             # print(target)
             target = conv.convert(target, "mm", "angle")
             self._xy.moveAngleAbsolute(i, target)
+
+    def gridFunc(self):
+        nx = self._view.gridMacroWindow.gridXSetter.value()
+        ny = self._view.gridMacroWindow.gridYSetter.value()
+        dx = self._view.gridMacroWindow.gridXSepSetter.value()
+        dy = self._view.gridMacroWindow.gridYSepSetter.value()
+
+        x0 = self._xy.currentPosition[0]
+        y0 = self._xy.currentPosition[1]
+
+        xTotalWidth = (nx-1)*dx
+        yTotalWidth = (ny-1)*dy
+        print("Printing Grid")
+        
+
+        for x in range(0, nx):            
+
+            for y in range(0, ny):
+                self._xy.trigger(TRIGGER_AXIS, "A")
+                print("print at " + str(self._xy.currentPosition[0]) + ", " + str(self._xy.currentPosition[1]))
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+                if (y!=(ny-1)):
+                    self._xy.move(1, dy)
+                    time.sleep(GRID_TIME_DELAY_MS/1000)
+
+            self._xy.move(1, -yTotalWidth)
+            time.sleep(GRID_TIME_DELAY_MS/1000)
+            if (GRID_BACKLASH_COMPENSATION_ENABLED):
+                self._xy.move(1, -GRID_BACKLASH_COMPENSATION_STEPS)
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+                self._xy.move(1, GRID_BACKLASH_COMPENSATION_STEPS)
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+            if (x!= (nx-1)):
+                self._xy.move(0, dx)
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+        self._xy.move(0, -xTotalWidth)
+        time.sleep(GRID_TIME_DELAY_MS/1000)
+                
+
 
     def runScriptFunc(self):
         """Pass the currently edited script to the script handler and play it back"""
@@ -755,8 +848,9 @@ class PrinterController:
         # self.updatePowerSupplyIndicator()
         try:
             self.updateTemperatureIndicator()
-        except:
-            print("Error getting data from PSU - is it connected?")
+        except Exception as e:
+            print("Error getting data from PSU - is it connected? The full error is:")
+            print(repr(e))
 
         """this bit does the mechanical data"""
         
@@ -780,7 +874,7 @@ class PrinterController:
         
 
     def updateTemperatureIndicator(self):
-        """Update GUI temperature data"""
+        """Update GUI temperature data and PID loops"""
         tempData = self._xy.getTempData(TEMP_AXIS)
         # print(tempData)
         for letter, number in tempData.items():
@@ -829,7 +923,7 @@ class psuController:
             self.power = psu_serial.PSU_DUMMY(port)
             self.isConnected = False
             print("PSU not found - using dummy instead.")
-        self.power.turn_on()
+        
 
 
 def main():
