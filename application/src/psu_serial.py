@@ -16,6 +16,7 @@ class GPD_4303S:
         self.async_reply_buffer = []
         #self.identify()
 
+        self.is_on = False
 
 
 
@@ -162,11 +163,13 @@ class GPD_4303S:
         """Turn on all outputs on the PSU
         """
         self.write("OUT1\n")
+        self.is_on = True
 
     def turn_off(self):
         """Turn off all outputs on the PSU
         """
         self.write("OUT0\n")
+        self.is_on = False
 
     def set_voltage(self, v, ch):
         """Sets the voltage on a selected channel on the PSU
@@ -294,6 +297,7 @@ class PSU_DUMMY:
 
     def turn_on(self):
         self.write("OUT1\n")
+        
 
     def turn_off(self):
         self.write("OUT0\n")

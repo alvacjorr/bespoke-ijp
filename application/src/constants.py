@@ -73,10 +73,10 @@ KEY_TO_CHEVRON_DICT = {
 }
 
 CHEVRON_TO_AXIS_DICT = {
-            '^': 1,
-            'v': 1,
-            '>': 0,
-            '<': 0,
+            '^': 0,
+            'v': 0,
+            '>': 1,
+            '<': 1,
             }
 
 CHEVRON_TO_SIGN_DICT = {
@@ -133,15 +133,28 @@ PID_PROPORTIONAL_ON_MEASUREMENT = False
 
 # Proportional Integral and Derivative terms
 
+PID_P = 1.0
+PID_I = 0.02
+PID_D =  4.0
+
+""" paramaters for metal slide holder
+PID_P = 1.0
+PID_I = 0.02
+PID_D =  4.0
+"""
+
+""" parameters for flat heat plate on old nozzle holder (angled)
 PID_P = 1
 PID_I = 0.05
 PID_D =  0.05
+
+"""
 
 #uStepper Axis responsible for trigger control
 
 TRIGGER_AXIS = 0
 
-TRIGGER_MAX_TIME = 1000
+TRIGGER_MAX_TIME = 10000
 
 TRIGGER_MIN_TIME = 10
 
@@ -158,3 +171,12 @@ GRAPH_TEMP_WIDTH = 50 #number of successive points to plot on graph
 AFG2021_VISA_PORT = 'USB::0x0699::0x0349::C013148::INSTR'
 
 #AFG-2105 settings
+
+
+
+#grid settigns
+
+GRID_TIME_DELAY_MS = 500
+
+GRID_BACKLASH_COMPENSATION_ENABLED = True
+GRID_BACKLASH_COMPENSATION_STEPS = 1000
