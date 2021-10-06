@@ -85,7 +85,7 @@ class XYSerialInterface:
         """
 
         diff = int(steps - self.currentPosition[axis])
-        print(diff)
+        #print(diff)
         self.move(axis, diff)
 
     def moveAngleAbsolute(self, axis, angle):
