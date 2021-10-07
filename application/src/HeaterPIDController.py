@@ -33,6 +33,8 @@ class HeaterPIDController():
         new_t = int(self._ui.setter.setpointSpin.text())
         
         self.set_setpoint(new_t)
+
+        self.output.power.turn_on()
         return
 
     def _connectSignals(self):
@@ -197,7 +199,10 @@ class PIDCanvas(FigureCanvasQTAgg):
         self.axes_temperature = fig.add_subplot(1,1,1)
         self.axes_temperature.set_ylim([0, 100])
         self.axes_voltage = self.axes_temperature.twinx()
-        self.axes_voltage.set_ylim([-25,25])
+        if QT_SHOW_PID_TERMS:
+            self.axes_voltage.set_ylim([-25,25])
+        else:
+            self.axes_voltage.set_ylim([0,25])
         fig.tight_layout()
         super(PIDCanvas, self).__init__(fig)
 
@@ -278,38 +283,38 @@ class PIDGraphWindow(QWidget):
         else:
             # We have a reference, we can use it to update the data for that line.
             self.v_plot_ref.set_ydata(self.vdata)
+        if QT_SHOW_PID_TERMS:
+            if self.p_plot_ref is None:
+                # First time we have no plot reference, so do a normal plot.
+                # .plot returns a list of line <reference>s, as we're
+                # only getting one we can take the first element.
+                plot_refs = self.sc.axes_voltage.plot(self.xdata, self.pdata, 'y', label = 'p')
+                self.p_plot_ref = plot_refs[0]
+            else:
+                # We have a reference, we can use it to update the data for that line.
+                self.p_plot_ref.set_ydata(self.pdata)
 
-        if self.p_plot_ref is None:
-            # First time we have no plot reference, so do a normal plot.
-            # .plot returns a list of line <reference>s, as we're
-            # only getting one we can take the first element.
-            plot_refs = self.sc.axes_voltage.plot(self.xdata, self.pdata, 'y', label = 'p')
-            self.p_plot_ref = plot_refs[0]
-        else:
-            # We have a reference, we can use it to update the data for that line.
-            self.p_plot_ref.set_ydata(self.pdata)
+            if self.i_plot_ref is None:
+                # First time we have no plot reference, so do a normal plot.
+                # .plot returns a list of line <reference>s, as we're
+                # only getting one we can take the first element.
+                plot_refs = self.sc.axes_voltage.plot(self.xdata, self.idata, 'g', label = 'i')
+                self.i_plot_ref = plot_refs[0]
+            else:
+                # We have a reference, we can use it to update the data for that line.
+                self.i_plot_ref.set_ydata(self.idata)
 
-        if self.i_plot_ref is None:
-            # First time we have no plot reference, so do a normal plot.
-            # .plot returns a list of line <reference>s, as we're
-            # only getting one we can take the first element.
-            plot_refs = self.sc.axes_voltage.plot(self.xdata, self.idata, 'g', label = 'i')
-            self.i_plot_ref = plot_refs[0]
-        else:
-            # We have a reference, we can use it to update the data for that line.
-            self.i_plot_ref.set_ydata(self.idata)
-
-        if self.d_plot_ref is None:
-            # First time we have no plot reference, so do a normal plot.
-            # .plot returns a list of line <reference>s, as we're
-            # only getting one we can take the first element.
-            plot_refs = self.sc.axes_voltage.plot(self.xdata, self.ddata, 'm', label = 'd')
-            self.d_plot_ref = plot_refs[0]
-            #self.sc.axes.legend()
-            #self.sc.axes2.legend()
-        else:
-            # We have a reference, we can use it to update the data for that line.
-            self.d_plot_ref.set_ydata(self.ddata)
+            if self.d_plot_ref is None:
+                # First time we have no plot reference, so do a normal plot.
+                # .plot returns a list of line <reference>s, as we're
+                # only getting one we can take the first element.
+                plot_refs = self.sc.axes_voltage.plot(self.xdata, self.ddata, 'm', label = 'd')
+                self.d_plot_ref = plot_refs[0]
+                #self.sc.axes.legend()
+                #self.sc.axes2.legend()
+            else:
+                # We have a reference, we can use it to update the data for that line.
+                self.d_plot_ref.set_ydata(self.ddata)
 
 
 
@@ -325,7 +330,10 @@ class PIDGraphWindow(QWidget):
             plot_refs = self.sc.axes_temperature.plot(self.xdata, self.sdata, 'k--', label = 'setpoint')
             self.s_plot_ref = plot_refs[0]
             #self.sc.axes.legend()
-            lns = [self.t_plot_ref, self.v_plot_ref ,self.s_plot_ref, self.p_plot_ref, self.i_plot_ref, self.d_plot_ref]
+            if QT_SHOW_PID_TERMS:
+                lns = [self.t_plot_ref, self.v_plot_ref ,self.s_plot_ref, self.p_plot_ref, self.i_plot_ref, self.d_plot_ref]
+            else:
+                lns = [self.t_plot_ref, self.v_plot_ref ,self.s_plot_ref]
             labs = [l.get_label() for l in lns]
             self.sc.axes_temperature.legend(lns, labs, loc='upper left')
         else:

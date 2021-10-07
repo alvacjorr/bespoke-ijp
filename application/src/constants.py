@@ -131,6 +131,8 @@ POW_SERIAL_TIMEOUT = 0.01
 
 PID_PROPORTIONAL_ON_MEASUREMENT = False
 
+QT_SHOW_PID_TERMS = False
+
 # Proportional Integral and Derivative terms
 
 PID_P = 1.0
