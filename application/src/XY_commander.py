@@ -771,6 +771,8 @@ class PrinterController:
             self._xy.moveAngleAbsolute(i, target)
 
     def gridFunc(self):
+        """Function to print grids. Note that this function blocks the main thread and may affect the PID loop...
+        """
         nx = self._view.gridMacroWindow.gridXSetter.value()
         ny = self._view.gridMacroWindow.gridYSetter.value()
         dx = self._view.gridMacroWindow.gridXSepSetter.value()
