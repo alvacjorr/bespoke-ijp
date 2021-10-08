@@ -320,8 +320,9 @@ class PrinterUi(QMainWindow):
     :param QMainWindow: [description]
     :type QMainWindow: [type]
     """
-
-
+    
+    def closeEvent(self,event):
+        self.close_signal.emit()
 
 
     def __del__(self):
@@ -338,6 +339,8 @@ class PrinterUi(QMainWindow):
         self.consoleOut.setTextCursor(cursor)
         self.consoleOut.ensureCursorVisible()
     keyPressed = Signal(int)
+
+    close_signal = Signal()
 
     def __init__(self):
         """Creates the UI"""
@@ -659,6 +662,11 @@ class PrinterController:
     def updateUIStatuses(self):
         self._view.setExecuteStatusUI(self._script.running)
 
+    def closeFunc(self):
+        self._heater.power.turn_off()
+        print("Power Supply turned off.")
+        print("Exiting...")
+
     def _connectSignals(self):
         """Connects signals and slots."""
 
@@ -712,6 +720,10 @@ class PrinterController:
             partial(self.configureTriggerContinuousFunc)
         )
         self._view.gridMacroWindow.beginButton.clicked.connect(partial(self.gridFunc))
+
+        self._view.close_signal.connect(partial(self.closeFunc))
+
+
 
     def setTriggerFunc(self, value=0):
         """Function call to configure the triggers/timing, based upon the SpinBoxes in triggerWindow"""
@@ -846,11 +858,9 @@ class PrinterController:
         # print("updating lcd")
 
         # self.updatePowerSupplyIndicator()
-        try:
-            self.updateTemperatureIndicator()
-        except Exception as e:
-            print("Error getting data from PSU - is it connected? The full error is:")
-            print(repr(e))
+
+        self.updateTemperatureIndicator()
+
 
         """this bit does the mechanical data"""
         
@@ -875,16 +885,21 @@ class PrinterController:
 
     def updateTemperatureIndicator(self):
         """Update GUI temperature data and PID loops"""
-        tempData = self._xy.getTempData(TEMP_AXIS)
-        # print(tempData)
-        for letter, number in tempData.items():
-            temp = number
-            if letter == "B":
-                # print('Bed Temperature = ' + str(temp))
-                self.bed_controller.update(temp)
-            if letter == "N":
-                # print('Nozzle Temperature = ' + str(temp))
-                self.nozzle_controller.update(temp)
+        try:
+            tempData = self._xy.getTempData(TEMP_AXIS)
+            # print(tempData)
+            for letter, number in tempData.items():
+                temp = number
+                if letter == "B":
+                    # print('Bed Temperature = ' + str(temp))
+                    self.bed_controller.update(temp)
+                if letter == "N":
+                    # print('Nozzle Temperature = ' + str(temp))
+                    self.nozzle_controller.update(temp)
+        except Exception as e:
+            print("Something went wrong running the temperature control loop. The full error is:")
+            print(repr(e))
+
 
     def updatePowerSupplyIndicator(self):
         """Update GUI components with PSU data"""
