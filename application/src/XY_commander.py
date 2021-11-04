@@ -628,13 +628,13 @@ class PrinterController:
             self.startPoller()
 
         self.bed_controller = HeaterPIDController(
-            1, "Bed", self._heater, QT_POLLER_TIME_MS / 1000, 2.5
+            POW_HEATER_BED_CHANNEL, "Bed", self._heater, QT_POLLER_TIME_MS / 1000,POW_HEATER_BED_MAX_CURRENT , POW_HEATER_BED_MAX_VOLTAGE
         )
         # self.bed_controller.show_graphs()
         self._view.generalLayout.addWidget(self.bed_controller._ui.showButton)
 
         self.nozzle_controller = HeaterPIDController(
-            2, "Nozzle", self._heater, QT_POLLER_TIME_MS / 1000, 2.5
+            POW_HEATER_NOZZLE_CHANNEL, "Nozzle", self._heater, QT_POLLER_TIME_MS / 1000, POW_HEATER_NOZZLE_MAX_CURRENT, POW_HEATER_NOZZLE_MAX_VOLTAGE
         )
         # self.bed_controller.show_graphs()
         self._view.generalLayout.addWidget(self.nozzle_controller._ui.showButton)

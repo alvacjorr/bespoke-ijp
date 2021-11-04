@@ -8,8 +8,8 @@ from constants import *
 
 from functools import partial
 class HeaterPIDController():
-    def __init__(self,PSUchannel,name,PSUcontroller,sample_time,max_current):
-        self.pid = PID(PID_P, PID_I, PID_D, setpoint = TEMP_SETPOINT, output_limits=(0,24),proportional_on_measurement=PID_PROPORTIONAL_ON_MEASUREMENT, sample_time=sample_time)
+    def __init__(self,PSUchannel,name,PSUcontroller,sample_time,max_current,max_voltage):
+        self.pid = PID(PID_P, PID_I, PID_D, setpoint = TEMP_SETPOINT, output_limits=(0,max_voltage),proportional_on_measurement=PID_PROPORTIONAL_ON_MEASUREMENT, sample_time=sample_time)
         self.output = PSUcontroller
         self.channel = PSUchannel
         self.output.power.set_current(max_current, self.channel)
@@ -30,6 +30,8 @@ class HeaterPIDController():
         #self.update(0)
 
     def getNewSetpointFromUI(self):
+        """Retrieve the setpoint from the UI and pass it to the control loop. Then turn on the PSU.
+        """
         new_t = int(self._ui.setter.setpointSpin.text())
         
         self.set_setpoint(new_t)
@@ -38,6 +40,8 @@ class HeaterPIDController():
         return
 
     def _connectSignals(self):
+        """Setup function - connects signals and slots for UI components.
+        """
         self._ui.setter.setpointButton.clicked.connect(partial(self.getNewSetpointFromUI))
         return
 
@@ -48,9 +52,15 @@ class HeaterPIDController():
         :type t: float
         """        
         self.temperature = t
-        control = self.pid(t)
-        p, i, d = self.pid.components
-        if control is not self.last_control:
+        if self.output.power.is_on: #we should only run the pid loop if the heater is actually on
+            control = self.pid(t)
+            p, i, d = self.pid.components
+        else: # if the heater is off, just set everything to zero
+            control = 0
+            p = 0
+            i = 0
+            d = 0
+        if control is not self.last_control: #to minimise use of the serial port, only tell the heater the new voltage if it is different to the old one
             self.set_voltage(control)
             self.last_control = control
         #print(self.pid.components)
@@ -62,7 +72,7 @@ class HeaterPIDController():
         self._ui.setter.update(t,self.get_setpoint())
 
     def get_setpoint(self):
-        """Get the temperature setpoint
+        """Return the temperature setpoint
 
         :return: temparature setpoint in deg C
         :rtype: float
@@ -94,13 +104,14 @@ class HeaterPIDController():
 
 
     def set_voltage(self,v):
-        """Set the output voltage
+        """Set the output voltage. Possibly deprecated.
 
         :param v: voltage
         :type v: float
         """        
         ch = self.channel
-        v = int(v)
+        #v = int(v)
+        v = round(v,1)
         #v = "%0.1f" % v
         msg = "VSET" + str(ch) + ":" + str(v) + "\n"
         #print(msg)
