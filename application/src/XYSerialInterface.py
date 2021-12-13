@@ -45,7 +45,8 @@ class XYSerialInterface:
                 self.portX
                 self.portY
                 flag = 0
-            except:
+            except Exception as e:
+                print(e)
                 flag = 1
                 i = input(
                     "Unable to connect to steppers. Would you like to retry (r), ignore(i) or reconfigure (c)?"
