@@ -369,7 +369,7 @@ class PrinterUi(QMainWindow):
         
         print(WELCOME_MESSAGE)
         # Set some main window's properties
-        self.setWindowTitle("Printer")
+        self.setWindowTitle(QT_MAIN_WINDOW_TITLE)
         # self.setFixedSize(300, 300)
         # Set the central widget and properties
         self.generalLayout = QVBoxLayout()
@@ -425,17 +425,30 @@ class PrinterUi(QMainWindow):
             ">": (1, 2),
             "<": (1, 0),
             "DROP": (1, 1),
+            "BURST": (0,0),
         }
         for btnText, pos in joypadButtons.items():
             self.joypadButtons[btnText] = QPushButton(btnText)
             self.joypadButtons[btnText].setFixedSize(40, 40)
             joypadLayout.addWidget(self.joypadButtons[btnText], pos[0], pos[1])
+
+
+        self.joypadBurstSetter = QSpinBox()
+        self.joypadBurstSetter.setMinimum(1)
+        self.joypadBurstSetter.setSingleStep(1)
+        self.joypadBurstSetter.setMaximum(100)
+        self.joypadBurstSetter.setValue(1)
+        joypadLayout.addWidget(self.joypadBurstSetter, 0, 2)    
+
         self.joypadDistanceSetter = QSpinBox()
         self.joypadDistanceSetter.setMinimum(0)
         self.joypadDistanceSetter.setSingleStep(QT_JOYSTICK_STEP_INCREMENT)
         self.joypadDistanceSetter.setMaximum(QT_JOYSTICK_MAXIMUM_STEPS)
         self.joypadDistanceSetter.setValue(QT_JOYSTICK_STEP_INCREMENT)
         joypadLayout.addWidget(self.joypadDistanceSetter, 2, 2)
+
+
+
         joypadBox = QGroupBox("Joypad")
         joypadBox.setLayout(joypadLayout)
         joypadBox.setMinimumHeight(QT_JOYPAD_HEIGHT)
@@ -671,11 +684,14 @@ class PrinterController:
         """Connects signals and slots."""
 
         for btnText, btn in self._view.joypadButtons.items():
-            if btnText not in {"DROP"}:
+            if btnText not in {"DROP", "BURST"}:
                 btn.clicked.connect(partial(self.buttonXY, btnText))
 
         self._view.joypadButtons["DROP"].clicked.connect(
             partial(self._xy.trigger, TRIGGER_AXIS, "A")
+        )
+        self._view.joypadButtons["BURST"].clicked.connect(
+            partial(self.burstFunc)
         )
         # self._view.joypadButtons['DROP'].clicked.connect(partial(self.updatePositionIndicator))
         self._view.homeButton.clicked.connect(partial(self._xy.homeBoth))
@@ -808,6 +824,22 @@ class PrinterController:
                 time.sleep(GRID_TIME_DELAY_MS/1000)
         self._xy.move(0, -xTotalWidth)
         time.sleep(GRID_TIME_DELAY_MS/1000)
+
+    def burstFunc(self):
+        """Function to print bursts. Note that this function blocks the main thread and may affect the PID loop...
+        """
+        n = int(self._view.joypadBurstSetter.text())
+
+        print("Printing burst of " + str(n) + " droplets. Blocking all other functions (!)")
+
+        for i in range(0, n):
+            self._xy.trigger(TRIGGER_AXIS, "A")
+            print(str(i+1), end='\r')
+            if not(i == n-1):
+                time.sleep(BURST_TIME_DELAY_MS/1000)
+        
+        print("Burst complete.")
+   
                 
 
 
