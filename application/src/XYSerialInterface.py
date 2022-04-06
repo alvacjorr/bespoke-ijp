@@ -45,7 +45,8 @@ class XYSerialInterface:
                 self.portX
                 self.portY
                 flag = 0
-            except:
+            except Exception as e:
+                print(e)
                 flag = 1
                 i = input(
                     "Unable to connect to steppers. Would you like to retry (r), ignore(i) or reconfigure (c)?"
@@ -85,7 +86,7 @@ class XYSerialInterface:
         """
 
         diff = int(steps - self.currentPosition[axis])
-        print(diff)
+        #print(diff)
         self.move(axis, diff)
 
     def moveAngleAbsolute(self, axis, angle):
@@ -277,6 +278,20 @@ class XYSerialInterface:
         :rtype: dict
         """
 
+        #check for dodgy temperature values and replace them if needed
+
+        if data.find("TEMP") != -1:
+
+            if data.find("N NAN") != -1:
+                print("Nozzle Temperature NAN - check that the thermocouple is floating! In the meantime the temperature is treated as 999C to prevent overheating.")
+                data = data.replace("N NAN", "N999")
+
+            if data.find("B NAN") != -1:
+                print("Bed Temperature NAN - check that the thermocouple is floating! In the meantime the temperature is treated as 999C to prevent overheating.")
+                data = data.replace("B NAN", "B999")
+
+        #break out the data into a dictionary of key-value pairs.
+
         seps = re.split(":? ", data)
         datadict = {}
         try:
@@ -288,8 +303,9 @@ class XYSerialInterface:
                     )  # weird regex. just trust it.
                     val = float(val[0])
                     datadict[label] = val
-        except IndexError:
+        except IndexError as e:
             print("Something went wrong parsing: " + data)
+            print(repr(e))
         return datadict
 
     def callResponse(self, message, port):

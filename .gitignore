@@ -235,3 +235,6 @@ out/
 
 ~$*.SLDPRT
 ~$*.SLDDRW
+embedded/src/ustepperthermocouple1/ustepperthermocouple1.ino
+embedded/src/ustepperdblthermocouple/ustepperdblthermocouple.ino
+embedded/src/timer1demo/timer1demo.ino

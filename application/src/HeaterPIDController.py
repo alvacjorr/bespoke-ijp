@@ -8,11 +8,13 @@ from constants import *
 
 from functools import partial
 class HeaterPIDController():
-    def __init__(self,PSUchannel,name,PSUcontroller,sample_time,max_current):
-        self.pid = PID(PID_P, PID_I, PID_D, setpoint = TEMP_SETPOINT, output_limits=(0,24),proportional_on_measurement=PID_PROPORTIONAL_ON_MEASUREMENT, sample_time=sample_time)
+    def __init__(self,PSUchannel,name,PSUcontroller,sample_time,max_current,max_voltage):
+        self.pid = PID(PID_P, PID_I, PID_D, setpoint = TEMP_SETPOINT, output_limits=(0,max_voltage),proportional_on_measurement=PID_PROPORTIONAL_ON_MEASUREMENT, sample_time=sample_time)
         self.output = PSUcontroller
         self.channel = PSUchannel
         self.output.power.set_current(max_current, self.channel)
+
+        self.output.power.turn_off()
         
         self.temperature = 0
 
@@ -24,16 +26,22 @@ class HeaterPIDController():
 
 
         self._connectSignals()
-        self._ui.graph.update_plot(0,0,0)
+        self._ui.graph.update_plot(0,0,0,0,0,0)
         #self.update(0)
 
     def getNewSetpointFromUI(self):
+        """Retrieve the setpoint from the UI and pass it to the control loop. Then turn on the PSU.
+        """
         new_t = int(self._ui.setter.setpointSpin.text())
         
         self.set_setpoint(new_t)
+
+        self.output.power.turn_on()
         return
 
     def _connectSignals(self):
+        """Setup function - connects signals and slots for UI components.
+        """
         self._ui.setter.setpointButton.clicked.connect(partial(self.getNewSetpointFromUI))
         return
 
@@ -44,19 +52,27 @@ class HeaterPIDController():
         :type t: float
         """        
         self.temperature = t
-        control = self.pid(t)
-        if control is not self.last_control:
+        if self.output.power.is_on: #we should only run the pid loop if the heater is actually on
+            control = self.pid(t)
+            p, i, d = self.pid.components
+        else: # if the heater is off, just set everything to zero
+            control = 0
+            p = 0
+            i = 0
+            d = 0
+        if control is not self.last_control: #to minimise use of the serial port, only tell the heater the new voltage if it is different to the old one
             self.set_voltage(control)
             self.last_control = control
         #print(self.pid.components)
         #print('T: ' + str(t) +' V: ' + str(control))
         
+        
 
-        self._ui.graph.update_plot(t, control,self.get_setpoint())
+        self._ui.graph.update_plot(t, control,self.get_setpoint(), p, i, d)
         self._ui.setter.update(t,self.get_setpoint())
 
     def get_setpoint(self):
-        """Get the temperature setpoint
+        """Return the temperature setpoint
 
         :return: temparature setpoint in deg C
         :rtype: float
@@ -88,13 +104,14 @@ class HeaterPIDController():
 
 
     def set_voltage(self,v):
-        """Set the output voltage
+        """Set the output voltage. Possibly deprecated.
 
         :param v: voltage
         :type v: float
         """        
         ch = self.channel
-        v = int(v)
+        #v = int(v)
+        v = round(v,1)
         #v = "%0.1f" % v
         msg = "VSET" + str(ch) + ":" + str(v) + "\n"
         #print(msg)
@@ -188,12 +205,15 @@ class PIDCanvas(FigureCanvasQTAgg):
     :type FigureCanvasQTAgg: [type]
     """
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, parent=None, width=7, height=7, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(1,1,1)
-        self.axes.set_ylim([0, 100])
-        self.axes2 = self.axes.twinx()
-        self.axes2.set_ylim([0,25])
+        self.axes_temperature = fig.add_subplot(1,1,1)
+        self.axes_temperature.set_ylim([0, 100])
+        self.axes_voltage = self.axes_temperature.twinx()
+        if QT_SHOW_PID_TERMS:
+            self.axes_voltage.set_ylim([-25,25])
+        else:
+            self.axes_voltage.set_ylim([0,25])
         fig.tight_layout()
         super(PIDCanvas, self).__init__(fig)
 
@@ -213,39 +233,51 @@ class PIDGraphWindow(QWidget):
         self.xdata = list(range(n_data))
         self.tdata = [0 for i in range(n_data)]
         self.vdata = [0 for i in range(n_data)]
+        self.pdata = [0 for i in range(n_data)]
+        self.idata = [0 for i in range(n_data)]
+        self.ddata = [0 for i in range(n_data)]
 
         sp = TEMP_SETPOINT 
 
         self.sdata = [0 for i in range(n_data)]
 
-        self.sc = PIDCanvas(self, width=5, height=4, dpi=100)
+        self.sc = PIDCanvas(self, width=7, height=7, dpi=100)
 
         layout.addWidget(self.sc)
 
         self.t_plot_ref = None
         self.v_plot_ref = None
         self.s_plot_ref = None
+        self.p_plot_ref = None
+        self.i_plot_ref = None
+        self.d_plot_ref = None
 
-        #self.sc.axes.set_xlabel('time')
-        #self.sc.axes.set_ylabel('temperature')
-        #self.sc.axes2.set_ylabel('voltage')
         
         self.show()
 
 
-    def update_plot(self, t_new, v_new, s_new):
+
+
+    def update_plot(self, t_new, v_new, s_new, p_new, i_new, d_new):
         self.tdata = self.tdata[1:]
         self.tdata.append(t_new)
         self.vdata = self.vdata[1:]
         self.vdata.append(v_new)
         self.sdata = self.sdata[1:]
         self.sdata.append(s_new)
+        self.pdata = self.pdata[1:]
+        self.pdata.append(p_new)
+        self.idata = self.idata[1:]
+        self.idata.append(i_new)
+        self.ddata = self.ddata[1:]
+        self.ddata.append(d_new)
+        
 
         if self.t_plot_ref is None:
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.sc.axes.plot(self.xdata, self.tdata, 'r', label = 'temperature')
+            plot_refs = self.sc.axes_temperature.plot(self.xdata, self.tdata, 'r', label = 'temperature')
             self.t_plot_ref = plot_refs[0]
         else:
             # We have a reference, we can use it to update the data for that line.
@@ -255,13 +287,47 @@ class PIDGraphWindow(QWidget):
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.sc.axes2.plot(self.xdata, self.vdata, 'b', label = 'voltage')
+            plot_refs = self.sc.axes_voltage.plot(self.xdata, self.vdata, 'b', label = 'voltage')
             self.v_plot_ref = plot_refs[0]
             #self.sc.axes.legend()
             #self.sc.axes2.legend()
         else:
             # We have a reference, we can use it to update the data for that line.
             self.v_plot_ref.set_ydata(self.vdata)
+        if QT_SHOW_PID_TERMS:
+            if self.p_plot_ref is None:
+                # First time we have no plot reference, so do a normal plot.
+                # .plot returns a list of line <reference>s, as we're
+                # only getting one we can take the first element.
+                plot_refs = self.sc.axes_voltage.plot(self.xdata, self.pdata, 'y', label = 'p')
+                self.p_plot_ref = plot_refs[0]
+            else:
+                # We have a reference, we can use it to update the data for that line.
+                self.p_plot_ref.set_ydata(self.pdata)
+
+            if self.i_plot_ref is None:
+                # First time we have no plot reference, so do a normal plot.
+                # .plot returns a list of line <reference>s, as we're
+                # only getting one we can take the first element.
+                plot_refs = self.sc.axes_voltage.plot(self.xdata, self.idata, 'g', label = 'i')
+                self.i_plot_ref = plot_refs[0]
+            else:
+                # We have a reference, we can use it to update the data for that line.
+                self.i_plot_ref.set_ydata(self.idata)
+
+            if self.d_plot_ref is None:
+                # First time we have no plot reference, so do a normal plot.
+                # .plot returns a list of line <reference>s, as we're
+                # only getting one we can take the first element.
+                plot_refs = self.sc.axes_voltage.plot(self.xdata, self.ddata, 'm', label = 'd')
+                self.d_plot_ref = plot_refs[0]
+                #self.sc.axes.legend()
+                #self.sc.axes2.legend()
+            else:
+                # We have a reference, we can use it to update the data for that line.
+                self.d_plot_ref.set_ydata(self.ddata)
+
+
 
         # Trigger the canvas to update and redraw.
         self.setpoint_graph()
@@ -272,12 +338,15 @@ class PIDGraphWindow(QWidget):
             # First time we have no plot reference, so do a normal plot.
             # .plot returns a list of line <reference>s, as we're
             # only getting one we can take the first element.
-            plot_refs = self.sc.axes.plot(self.xdata, self.sdata, 'k--', label = 'setpoint')
+            plot_refs = self.sc.axes_temperature.plot(self.xdata, self.sdata, 'k--', label = 'setpoint')
             self.s_plot_ref = plot_refs[0]
             #self.sc.axes.legend()
-            lns = [self.t_plot_ref, self.v_plot_ref ,self.s_plot_ref]
+            if QT_SHOW_PID_TERMS:
+                lns = [self.t_plot_ref, self.v_plot_ref ,self.s_plot_ref, self.p_plot_ref, self.i_plot_ref, self.d_plot_ref]
+            else:
+                lns = [self.t_plot_ref, self.v_plot_ref ,self.s_plot_ref]
             labs = [l.get_label() for l in lns]
-            self.sc.axes.legend(lns, labs, loc='upper left')
+            self.sc.axes_temperature.legend(lns, labs, loc='upper left')
         else:
             # We have a reference, we can use it to update the data for that line.
             self.s_plot_ref.set_ydata(self.sdata)
