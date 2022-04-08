@@ -619,6 +619,96 @@ class PrinterUi(QMainWindow):
         else:
             self.scriptExecuteButton.setStyleSheet(QT_STYLE_EXECUTE_READY)
 
+class GridController:
+    """Class to control async grid printing
+    """
+    def __init__(self,xy,view):
+        self._xy = xy
+        self._view = view
+        self.createPoller()
+        self.pollTime = GRID_POLL_MS
+        self.x = 0
+        self.nx = 0
+        self.y = 0
+        self.ny = 0
+        self.dx = 0
+        self.dy = 0
+        self.x0 = 0
+        self.y0 = 0
+
+    def createPoller(self):
+        self.poller = QTimer()
+        self.poller.timeout.connect(partial(self.handle))
+
+    def startPoller(self):
+        self.poller.start(self.pollTime)
+
+    def stopPoller(self):
+        self.poller.stop()
+
+    def trigger(self):
+        self._xy.trigger(TRIGGER_AXIS, "A")
+
+    def handle(self):
+
+    def gridAsyncStartDefault():
+        """Starts grid printing with standard values taken from the GUI
+        """
+        gridAsyncStart(self._view.gridMacroWindow.gridXSetter.value(),self._view.gridMacroWindow.gridYSetter.value(),self._view.gridMacroWindow.gridXSepSetter.value(),self._view.gridMacroWindow.gridYSepSetter.value(),self._xy.currentPosition[0],self._xy.currentPosition[1])
+
+
+    def gridAsyncStart(nx, ny, dx, dy, x0, y0):
+        """Function to initiate grid printing with chosen paramaters.
+        """
+
+        print("Printing grid started.")
+        self.x = 0
+        self.y = 0
+        self.nx = nx
+        self.ny = ny
+        self.dx = dx
+        self.dy = dy
+        self.x0 = x0
+        self.y0 = y0
+
+
+
+
+
+        self.xTotalWidth = (nx-1)*dx
+        self.yTotalWidth = (ny-1)*dy
+        print("Printing Grid")
+        
+
+        for x in range(0, nx):            
+
+            for y in range(0, ny):
+                self._xy.trigger(TRIGGER_AXIS, "A")
+                print("print at " + str(x) + ", " + str(y))
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+                if (y!=(ny-1)):
+                    self._xy.move(1, dy)
+                    time.sleep(GRID_TIME_DELAY_MS/1000)
+
+            self._xy.move(1, -yTotalWidth)
+            time.sleep(ny*GRID_TIME_DELAY_MS/1000)
+            if (GRID_BACKLASH_COMPENSATION_ENABLED):
+                self._xy.move(1, -GRID_BACKLASH_COMPENSATION_STEPS)
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+                self._xy.move(1, GRID_BACKLASH_COMPENSATION_STEPS)
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+            if (x!= (nx-1)):
+                self._xy.move(0, dx)
+                time.sleep(GRID_TIME_DELAY_MS/1000)
+        self._xy.move(0, -xTotalWidth)
+        time.sleep(nx*GRID_TIME_DELAY_MS/1000)
+
+
+        self.poller.start()
+
+
+
+
 
 class PrinterController:
     """Printer controller cclass. master for basically everything."""
@@ -636,6 +726,9 @@ class PrinterController:
         # self.initialisePosition()
         self.createPoller()
         self.createExecutePoller()
+
+        self.gridController = GridController(self._xy, self._view)
+        
         if QT_POLLER_ENABLED:
             time.sleep(1)
             self.startPoller()
@@ -657,6 +750,7 @@ class PrinterController:
         """Creates a poller that can monitor the state of the systems mechanical values (steps, angle, velocity and velocity setpoint)"""
         self.poller = QTimer()
         self.poller.timeout.connect(partial(self.updatePositionIndicator))
+
 
     def startPoller(self):
         """Start the driver poller"""
@@ -786,9 +880,12 @@ class PrinterController:
             target = conv.convert(target, "mm", "angle")
             self._xy.moveAngleAbsolute(i, target)
 
+
+
     def gridFunc(self):
         """Function to print grids. Note that this function blocks the main thread and may affect the PID loop...
         """
+        print("Printing grid. Blocking all other functions (!)")
         nx = self._view.gridMacroWindow.gridXSetter.value()
         ny = self._view.gridMacroWindow.gridYSetter.value()
         dx = self._view.gridMacroWindow.gridXSepSetter.value()
@@ -806,14 +903,14 @@ class PrinterController:
 
             for y in range(0, ny):
                 self._xy.trigger(TRIGGER_AXIS, "A")
-                print("print at " + str(self._xy.currentPosition[0]) + ", " + str(self._xy.currentPosition[1]))
+                print("print at " + str(x) + ", " + str(y))
                 time.sleep(GRID_TIME_DELAY_MS/1000)
                 if (y!=(ny-1)):
                     self._xy.move(1, dy)
                     time.sleep(GRID_TIME_DELAY_MS/1000)
 
             self._xy.move(1, -yTotalWidth)
-            time.sleep(GRID_TIME_DELAY_MS/1000)
+            time.sleep(ny*GRID_TIME_DELAY_MS/1000)
             if (GRID_BACKLASH_COMPENSATION_ENABLED):
                 self._xy.move(1, -GRID_BACKLASH_COMPENSATION_STEPS)
                 time.sleep(GRID_TIME_DELAY_MS/1000)
@@ -823,7 +920,7 @@ class PrinterController:
                 self._xy.move(0, dx)
                 time.sleep(GRID_TIME_DELAY_MS/1000)
         self._xy.move(0, -xTotalWidth)
-        time.sleep(GRID_TIME_DELAY_MS/1000)
+        time.sleep(nx*GRID_TIME_DELAY_MS/1000)
 
     def burstFunc(self):
         """Function to print bursts. Note that this function blocks the main thread and may affect the PID loop...
