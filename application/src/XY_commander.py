@@ -285,8 +285,8 @@ class GridMacroWindow(QWidget):
 
         self.beginButton  = QPushButton("Begin")
 
-        self.gridXSetter = QSpinBox(minimum = 1, maximum = 20)
-        self.gridYSetter = QSpinBox(minimum = 1, maximum = 20)
+        self.gridXSetter = QSpinBox(minimum = 1, maximum = GRID_MAX_DROPS)
+        self.gridYSetter = QSpinBox(minimum = 1, maximum = GRID_MAX_DROPS)
 
         self.gridXSepSetter = QSpinBox(minimum = 1, maximum = 20000)
         self.gridYSepSetter = QSpinBox(minimum = 1, maximum = 20000)
