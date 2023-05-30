@@ -2,7 +2,7 @@ Background and Motivation
 ==========
 
 This section explains the main motivations for the development of the bespoke-ijp system, as well as a description of some of the work that precedes it.
-Much of this section is copied verbatim from Andrew Orr's transfer report.
+Much of this section is copied verbatim from Alva Orr's transfer report.
 
 Inkjet Printing
 ***************

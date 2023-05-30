@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../../application/src/'))
 # -- Project information -----------------------------------------------------
 
 project = 'bespoke-ijp'
-copyright = '2021, Andrew Orr'
-author = 'Andrew Orr'
+copyright = '2023, Alva Orr'
+author = 'Alva Orr'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'
